@@ -37,7 +37,7 @@ func ReturnStringStruct(Data any) string {
 }
 
 func GCFPasetoTokenStr(PrivateKey, MongoEnv, dbname, collectionname string, r *http.Request) string {
-	var resp Credential
+	var resp Unumber
 	resp.Status = false
 	mconn := MongoCreateConnection(MongoEnv, dbname)
 	var datauser User
@@ -63,7 +63,7 @@ func GCFPasetoTokenStr(PrivateKey, MongoEnv, dbname, collectionname string, r *h
 }
 
 func GCFPasswordHasher(r *http.Request) string {
-	resp := new(Credential)
+	resp := new(Unumber)
 	userdata := new(User)
 	resp.Status = false
 	err := json2.NewDecoder(r.Body).Decode(&userdata)
@@ -83,7 +83,7 @@ func GCFPasswordHasher(r *http.Request) string {
 }
 
 func InsertDataUserGCF(Mongoenv, dbname string, r *http.Request) string {
-	resp := new(Credential)
+	resp := new(Unumber)
 	userdata := new(User)
 	resp.Status = false
 	conn := MongoCreateConnection(Mongoenv, dbname)

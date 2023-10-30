@@ -8,7 +8,7 @@ type User struct {
 	Role     string `json:"role,omitempty" bson:"role,omitempty"`
 }
 
-type Credential struct {
+type Unumber struct {
 	Status  bool   `json:"status" bson:"status"`
 	Token   string `json:"token,omitempty" bson:"token,omitempty"`
 	Message string `json:"message,omitempty" bson:"message,omitempty"`
