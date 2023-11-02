@@ -27,7 +27,7 @@ func TestHashPass(t *testing.T) {
 }
 
 func TestHashFunc(t *testing.T) {
-	conn := MongoCreateConnection("MONGOSTRING", "ParArbiApp")
+	conn := MongoCreateConnection("MONGOSTRING", "PakArbiApp")
 	userdata := new(User)
 	userdata.Username = "pakarbi"
 	userdata.Password = "kuytuy"
@@ -66,9 +66,9 @@ func TestTokenEncoder(t *testing.T) {
 
 func TestInsertUserdata(t *testing.T) {
 	conn := MongoCreateConnection("MONGOSTRING", "PakArbi")
-	password, err := HashPass("Faidiq")
+	password, err := HashPass("faisal")
 	fmt.Println("err", err)
-	data := InsertUserdata(conn, "Faidiq", "role", password)
+	data := InsertUserdata(conn, "faisal", "role", password)
 	fmt.Println(data)
 }
 
