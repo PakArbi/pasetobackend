@@ -14,7 +14,7 @@ func TestGenerateKeyPASETO(t *testing.T) {
 	privateKey, publicKey := watoken.GenerateKey()
 	fmt.Println(privateKey)
 	fmt.Println(publicKey)
-	hasil, err := watoken.Encode("asoy", privateKey)
+	hasil, err := watoken.Encode("sankuy", privateKey)
 	fmt.Println(hasil, err)
 }
 
@@ -29,8 +29,8 @@ func TestHashPass(t *testing.T) {
 func TestHashFunc(t *testing.T) {
 	conn := MongoCreateConnection("MONGOVER", "PAapp")
 	userdata := new(User)
-	userdata.Username = "pakarbi"
-	userdata.Password = "kuytuy"
+	userdata.Username = "sankuy"
+	userdata.Password = "sankuypass"
 
 	data := GetOneUser(conn, "user", User{
 		Username: userdata.Username,
@@ -48,8 +48,8 @@ func TestTokenEncoder(t *testing.T) {
 	conn := MongoCreateConnection("MONGOVER", "PakArbi")
 	privateKey, publicKey := watoken.GenerateKey()
 	userdata := new(User)
-	userdata.Username = "mans"
-	userdata.Password = "kuysantuy"
+	userdata.Username = "sankuy"
+	userdata.Password = "sankuypass"
 
 	data := GetOneUser(conn, "user", User{
 		Username: userdata.Username,
@@ -66,9 +66,9 @@ func TestTokenEncoder(t *testing.T) {
 
 func TestInsertUserdata(t *testing.T) {
 	conn := MongoCreateConnection("MONGOVER", "PakArbi")
-	password, err := HashPass("faisal")
+	password, err := HashPass("Sankuy")
 	fmt.Println("err", err)
-	data := InsertUserdata(conn, "faisal", "role", password)
+	data := InsertUserdata(conn, "Sankuy", "role", password)
 	fmt.Println(data)
 }
 
