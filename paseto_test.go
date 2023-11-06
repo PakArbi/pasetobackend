@@ -27,7 +27,7 @@ func TestHashPass(t *testing.T) {
 }
 
 func TestHashFunc(t *testing.T) {
-	conn := MongoCreateConnection("MONGOVER", "PAapp")
+	conn := MongoCreateConnection("MONGOSTRING", "PakArbi")
 	userdata := new(User)
 	userdata.Username = "sankuy"
 	userdata.Password = "sankuypass"
@@ -45,7 +45,7 @@ func TestHashFunc(t *testing.T) {
 }
 
 func TestTokenEncoder(t *testing.T) {
-	conn := MongoCreateConnection("MONGOVER", "PakArbi")
+	conn := MongoCreateConnection("MONGOSTRING", "PakArbi")
 	privateKey, publicKey := watoken.GenerateKey()
 	userdata := new(User)
 	userdata.Username = "sankuy"
@@ -65,7 +65,7 @@ func TestTokenEncoder(t *testing.T) {
 }
 
 func TestInsertUserdata(t *testing.T) {
-	conn := MongoCreateConnection("MONGOVER", "PakArbi")
+	conn := MongoCreateConnection("MONGOSTRING", "PakArbi")
 	password, err := HashPass("Sankuy")
 	fmt.Println("err", err)
 	data := InsertUserdata(conn, "Sankuy", "role", password)
@@ -79,7 +79,7 @@ func TestDecodeToken(t *testing.T) {
 }
 
 func TestCompareUsername(t *testing.T) {
-	conn := MongoCreateConnection("MONGOVER", "PakArbi")
+	conn := MongoCreateConnection("MONGOSTRING", "PakArbi")
 	duc := watoken.DecodeGetId("public",
 		"token")
 	compare := CompareUsername(conn, "user", duc)
