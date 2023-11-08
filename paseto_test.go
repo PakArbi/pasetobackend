@@ -2,111 +2,104 @@ package pasetobackend
 
 import (
 	"fmt"
-	"github.com/whatsauth/watoken"
 	"testing"
+
+	"github.com/aiteung/atdb"
+	"github.com/whatsauth/watoken"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
-var privatekey = "privatekey"
-var publickeyb = "publickey"
-var encode = "encode"
+func TestCreateNewUserRole(t *testing.T) {
+	var userdata User
+	userdata.Username = "pakarbi"
+	userdata.Password = "lodons"
+	userdata.Role = "user"
+	mconn := SetConnection("MONGOSTRING", "PakArbi")
+	CreateNewUserRole(mconn, "user", userdata)
+}
 
-func TestGenerateKeyPASETO(t *testing.T) {
+// func TestDeleteUser(t *testing.T) {
+// 	mconn := SetConnection("MONGOSTRING", "pasabar13")
+// 	var userdata User
+// 	userdata.Username = "lolz"
+// 	DeleteUser(mconn, "user", userdata)
+// }
+
+func CreateNewUserToken(t *testing.T) {
+	var userdata User
+	userdata.Username = "pakarbi"
+	userdata.Password = "pakarbipass"
+	userdata.Role = "user"
+
+	// Create a MongoDB connection
+	mconn := SetConnection("MONGOSTRING", "PakArbi")
+
+	// Call the function to create a user and generate a token
+	err := CreateUserAndAddToken("your_private_key_env", mconn, "user", userdata)
+
+	if err != nil {
+		t.Errorf("Error creating user and token: %v", err)
+	}
+}
+
+func TestGFCPostHandlerUser(t *testing.T) {
+	mconn := SetConnection("MONGOSTRING", "PakArbi")
+	var userdata User
+	userdata.Username = "pakarbi"
+	userdata.Password = "pakarbipass"
+	userdata.Role = "user"
+	CreateNewUserRole(mconn, "user", userdata)
+}
+
+func TestGeneratePasswordHash(t *testing.T) {
+	password := "testpass"
+	hash, _ := HashPassword(password) // ignore error for the sake of simplicity
+
+	fmt.Println("Password:", password)
+	fmt.Println("Hash:    ", hash)
+	match := CheckPasswordHash(password, hash)
+	fmt.Println("Match:   ", match)
+}
+func TestGeneratePrivateKeyPaseto(t *testing.T) {
 	privateKey, publicKey := watoken.GenerateKey()
 	fmt.Println(privateKey)
 	fmt.Println(publicKey)
-	hasil, err := watoken.Encode("sankuy", privateKey)
+	hasil, err := watoken.Encode("testpakarbi", privateKey)
 	fmt.Println(hasil, err)
 }
 
-func TestHashPass(t *testing.T) {
-	password := "sankuypass"
-
-	Hashedpass, err := HashPass(password)
-	fmt.Println("error : ", err)
-	fmt.Println("Hash : ", Hashedpass)
-}
-
-func TestHashFunc(t *testing.T) {
-	conn := MongoCreateConnection("MONGOSTRING", "PakArbi")
-	userdata := new(User)
-	userdata.Username = "sankuy"
+func TestHashFunction(t *testing.T) {
+	mconn := SetConnection("MONGOSTRING", "PakArbi")
+	var userdata User
+	userdata.Username = "faisal"
 	userdata.Password = "sankuypass"
 
-	data := GetOneUser(conn, "user", User{
-		Username: userdata.Username,
-		Password: userdata.Password,
-	})
-	fmt.Printf("%+v", data)
-	fmt.Println(" ")
-	hashpass, _ := HashPass(userdata.Password)
-	fmt.Println("Hasil hash : ", hashpass)
-	compared := CompareHashPass(userdata.Password, data.Password)
-	fmt.Println("result : ", compared)
+	filter := bson.M{"username": userdata.Username}
+	res := atdb.GetOneDoc[User](mconn, "user", filter)
+	fmt.Println("Mongo User Result: ", res)
+	hash, _ := HashPassword(userdata.Password)
+	fmt.Println("Hash Password : ", hash)
+	match := CheckPasswordHash(userdata.Password, res.Password)
+	fmt.Println("Match:   ", match)
+
 }
 
-func TestTokenEncoder(t *testing.T) {
-	conn := MongoCreateConnection("MONGOSTRING", "PakArbi")
-	privateKey, publicKey := watoken.GenerateKey()
-	userdata := new(User)
-	userdata.Username = "sankuy"
+func TestIsPasswordValid(t *testing.T) {
+	mconn := SetConnection("MONGOSTRING", "PakArbi")
+	var userdata User
+	userdata.Username = "faisal"
 	userdata.Password = "sankuypass"
 
-	data := GetOneUser(conn, "user", User{
-		Username: userdata.Username,
-		Password: userdata.Password,
-	})
-	fmt.Println("Private Key : ", privateKey)
-	fmt.Println("Public Key : ", publicKey)
-	fmt.Printf("%+v", data)
-	fmt.Println(" ")
-
-	encode := TokenEncoder(data.Username, privateKey)
-	fmt.Printf("%+v", encode)
+	anu := IsPasswordValid(mconn, "user", userdata)
+	fmt.Println(anu)
 }
 
-func TestInsertUserdata(t *testing.T) {
-	conn := MongoCreateConnection("MONGOSTRING", "PakArbi")
-	password, err := HashPass("Sankuy")
-	fmt.Println("err", err)
-	data := InsertUserdata(conn, "Sankuy", "role", password)
-	fmt.Println(data)
+func TestUserFix(t *testing.T) {
+	mconn := SetConnection("MONGOSTRING", "PakArbi")
+	var userdata User
+	userdata.Username = "pakarbi"
+	userdata.Password = "pakarbipass"
+	userdata.Role = "user"
+	CreateUser(mconn, "user", userdata)
 }
 
-func TestDecodeToken(t *testing.T) {
-	duc := watoken.DecodeGetId("public",
-		"token")
-	fmt.Println(duc)
-}
-
-func TestCompareUsername(t *testing.T) {
-	conn := MongoCreateConnection("MONGOSTRING", "PakArbi")
-	duc := watoken.DecodeGetId("public",
-		"token")
-	compare := CompareUsername(conn, "user", duc)
-	fmt.Println(compare)
-}
-
-func TestEncodeWithRole(t *testing.T) {
-	privateKey, publicKey := watoken.GenerateKey()
-	role := "admin"
-	username := "Pakarbi"
-	encoder, err := EncodeWithRole(role, username, privateKey)
-
-	fmt.Println(" error :", err)
-	fmt.Println("Private :", privateKey)
-	fmt.Println("Public :", publicKey)
-	fmt.Println("encode: ", encoder)
-
-}
-
-func TestDecoder2(t *testing.T) {
-	pay, err := Decoder(publickeyb, encode)
-	user, _ := DecodeGetUser(publickeyb, encode)
-	role, _ := DecodeGetRole(publickeyb, encode)
-	use, ro := DecodeGetRoleandUser(publickeyb, encode)
-	fmt.Println("user :", user)
-	fmt.Println("role :", role)
-	fmt.Println("user and role :", use, ro)
-	fmt.Println("err : ", err)
-	fmt.Println("payload : ", pay)
-}
