@@ -64,7 +64,7 @@ func TestGeneratePrivateKeyPaseto(t *testing.T) {
 	privateKey, publicKey := watoken.GenerateKey()
 	fmt.Println(privateKey)
 	fmt.Println(publicKey)
-	hasil, err := watoken.Encode("testpakarbi", privateKey)
+	hasil, err := watoken.Encode("sankuy", privateKey)
 	fmt.Println(hasil, err)
 }
 
