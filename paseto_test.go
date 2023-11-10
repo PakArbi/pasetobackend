@@ -11,8 +11,8 @@ import (
 
 func TestCreateNewUserRole(t *testing.T) {
 	var userdata User
-	userdata.Username = "pakarbi"
-	userdata.Password = "lodons"
+	userdata.Username = "faisal"
+	userdata.Password = "sankuy"
 	userdata.Role = "user"
 	mconn := SetConnection("MONGOSTRING", "PakArbi")
 	CreateNewUserRole(mconn, "user", userdata)
@@ -27,8 +27,8 @@ func TestCreateNewUserRole(t *testing.T) {
 
 func CreateNewUserToken(t *testing.T) {
 	var userdata User
-	userdata.Username = "pakarbi"
-	userdata.Password = "pakarbipass"
+	userdata.Username = "faisal"
+	userdata.Password = "sankuy"
 	userdata.Role = "user"
 
 	// Create a MongoDB connection
@@ -45,8 +45,8 @@ func CreateNewUserToken(t *testing.T) {
 func TestGFCPostHandlerUser(t *testing.T) {
 	mconn := SetConnection("MONGOSTRING", "PakArbi")
 	var userdata User
-	userdata.Username = "pakarbi"
-	userdata.Password = "pakarbipass"
+	userdata.Username = "faisal"
+	userdata.Password = "sankuy"
 	userdata.Role = "user"
 	CreateNewUserRole(mconn, "user", userdata)
 }
@@ -72,7 +72,7 @@ func TestHashFunction(t *testing.T) {
 	mconn := SetConnection("MONGOSTRING", "PakArbi")
 	var userdata User
 	userdata.Username = "faisal"
-	userdata.Password = "sankuypass"
+	userdata.Password = "sankuy"
 
 	filter := bson.M{"username": userdata.Username}
 	res := atdb.GetOneDoc[User](mconn, "user", filter)
@@ -88,7 +88,7 @@ func TestIsPasswordValid(t *testing.T) {
 	mconn := SetConnection("MONGOSTRING", "PakArbi")
 	var userdata User
 	userdata.Username = "faisal"
-	userdata.Password = "sankuypass"
+	userdata.Password = "sankuy"
 
 	anu := IsPasswordValid(mconn, "user", userdata)
 	fmt.Println(anu)
@@ -97,8 +97,8 @@ func TestIsPasswordValid(t *testing.T) {
 func TestUserFix(t *testing.T) {
 	mconn := SetConnection("MONGOSTRING", "PakArbi")
 	var userdata User
-	userdata.Username = "pakarbi"
-	userdata.Password = "pakarbipass"
+	userdata.Username = "faisal"
+	userdata.Password = "sankuy"
 	userdata.Role = "user"
 	CreateUser(mconn, "user", userdata)
 }
