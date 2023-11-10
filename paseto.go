@@ -5,6 +5,10 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"context"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/aiteung/atdb"
 	"github.com/whatsauth/watoken"
@@ -89,6 +93,53 @@ func GCFCreateHandler(MONGOCONNSTRINGENV, dbname, collectionname string, r *http
 
 	return GCFReturnStruct(datauser)
 }
+
+func GCFRegisterUser(username, password, role, mongoConnectionString, dbName string) bool {
+    // Menghubungkan ke database MongoDB
+    client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(mongoConnectionString))
+    if err != nil {
+        // Gagal terhubung ke database
+        return false
+    }
+    defer client.Disconnect(context.TODO())
+
+    // Memilih koleksi (tabel) yang sesuai
+    collection := client.Database(dbName).Collection("users")
+
+    // Cek apakah pengguna dengan username tersebut sudah terdaftar
+    existingUserFilter := bson.M{"username": username}
+    existingUser := collection.FindOne(context.Background(), existingUserFilter)
+    if existingUser.Err() == nil {
+        // Pengguna dengan username tersebut sudah terdaftar
+        return false
+    }
+
+    // Hash password menggunakan bcrypt sebelum menyimpannya ke database
+    hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+    if err != nil {
+        // Gagal hash password
+        return false
+    }
+
+    // Data pengguna baru
+    newUser := UserData{
+        Username: username,
+        Password: string(hashedPassword),
+        Role:     role,
+    }
+
+    // Menyimpan data pengguna ke database
+    _, err = collection.InsertOne(context.Background(), newUser)
+    if err != nil {
+        // Gagal menyimpan data pengguna ke database
+        return false
+    }
+
+    // Registrasi pengguna berhasil
+    return true
+}
+// Sesuaikan dengan kebutuhan dan struktur data yang Anda miliki. Pastikan atribut Role telah ditambahkan di struktur
+
 
 func GFCPostHandlerUser(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
 	var Response Credential
