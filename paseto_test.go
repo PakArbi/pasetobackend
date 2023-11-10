@@ -52,7 +52,7 @@ func TestGFCPostHandlerUser(t *testing.T) {
 }
 
 func TestGeneratePasswordHash(t *testing.T) {
-	password := "testpass"
+	password := "sankuy"
 	hash, _ := HashPassword(password) // ignore error for the sake of simplicity
 
 	fmt.Println("Password:", password)
