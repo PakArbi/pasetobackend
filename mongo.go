@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"errors"
+	
 
 	"github.com/aiteung/atdb"
 	"github.com/whatsauth/watoken"
@@ -86,55 +86,6 @@ func CreateAdmin(mongoconn *mongo.Database, collection string, admindata Admin) 
 func GetNameAndPassowrd(mongoconn *mongo.Database, collection string) []User {
 	user := atdb.GetAllDoc[[]User](mongoconn, collection)
 	return user
-}
-
-func DecodeUser(result bson.M) (User, error) {
-    var user User
-
-    // convert result to User object
-    // handle any necessary error checking or type conversion
-
-    return user, nil
-}
-
-func GetByNameOrEmail(mongoconn *mongo.Database, collection, identifier string) (User, error) {
-    var userdata User
-
-    filter := bson.M{
-        "$or": []bson.M{
-            {"username": identifier},
-            {"email": identifier},
-        },
-    }
-
-    result := atdb.GetOneDoc(mongoconn, collection, filter, &userdata)
-    if result == nil {
-        return User{}, errors.New("document not found")
-    }
-
-    user, err := DecodeUser(result)
-    if err != nil {
-        return User{}, err
-    }
-
-    return user, nil
-}
-
-func GetOneDoc(mongoconn *mongo.Database, collection string, filter bson.M) (User, error) {
-    var user User
-
-    ctx := context.TODO()
-
-    err := mongoconn.Collection(collection).FindOne(ctx, filter).Decode(&user)
-    if err != nil {
-        if errors.Is(err, mongo.ErrNoDocuments) {
-            return User{}, errors.New("document not found")
-        }
-        return User{}, err
-
-    }
-
-    return user, nil
 }
 
 

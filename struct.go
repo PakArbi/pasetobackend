@@ -1,15 +1,10 @@
 package pasetobackend
 
-type UserData struct {
-    Username string `json:"username"`
-    Password string `json:"password"`
-	Role	 string `json:"role"`
-}
-
 type User struct {
 	Username string `json:"username" bson:"username"`
 	Email    string `bson:"email,omitempty" json:"email,omitempty"`
 	Password string `json:"password" bson:"password"`
+	PasswordHash string `json:"passwordhash" bson:"passwordhash"`
 	Role     string `json:"role,omitempty" bson:"role,omitempty"`
 	Token    string `json:"token,omitempty" bson:"token,omitempty"`
 	Private  string `json:"private,omitempty" bson:"private,omitempty"`
@@ -20,6 +15,7 @@ type Admin struct {
 	Username string `json:"username" bson:"username"`
 	Email    string `bson:"email,omitempty" json:"email,omitempty"`
 	Password string `json:"password" bson:"password"`
+	PasswordHash string `json:"passwordhash" bson:"passwordhash"`
 	Role     string `json:"role,omitempty" bson:"role,omitempty"`
 	Token    string `json:"token,omitempty" bson:"token,omitempty"`
 	Private  string `json:"private,omitempty" bson:"private,omitempty"`

@@ -123,7 +123,7 @@ func GCFRegisterUser(username, password, role, mongoConnectionString, dbName str
     }
 
     // Data pengguna baru
-    newUser := UserData{
+    newUser := User{
         Username: username,
         Password: string(hashedPassword),
         Role:     role,
@@ -244,42 +244,34 @@ func Login(Privatekey, MongoEnv, dbname, Colname string, r *http.Request) string
 	return GCFReturnStruct(resp)
 }
 
-func Register(Privatekey, MongoEnv, dbname, Colname string, r *http.Request) string {
+func Register(MongoEnv, dbname string, r *http.Request) string {
 	var resp Credential
 	mconn := SetConnection(MongoEnv, dbname)
-	var userdata User
-	err := json.NewDecoder(r.Body).Decode(&userdata)
+	var datauser User
+	var err error
+	err = json.NewDecoder(r.Body).Decode(&datauser)
 	if err != nil {
 		resp.Message = "error parsing application/json: " + err.Error()
 	} else {
-		// Check if the username or email is already registered
-		existingUser, err := GetByNameOrEmail(mconn, Colname, userdata.Username)
-		if err == nil {
-			resp.Message = "Username or email is already registered."
-		} else { 
-			// Hash the password before storing it in the database
-			hashedPassword, err := HashPassword(userdata.Password)
+		// Verifikasi apakah pengguna sudah terdaftar
+		if IsUserExist(mconn, "users", datauser.Username) {
+			resp.Message = "Pengguna dengan username tersebut sudah terdaftar"
+		} else {
+			// Hash password sebelum disimpan
+			hashedPassword, err := HashPassword(datauser.Password)
 			if err != nil {
-				resp.Message = "Failed to hash password: " + err.Error()
+				resp.Message = "Gagal hash password: " + err.Error()
 			} else {
-				fmt.Printf("User: %v\n", existingUser)
-				userdata.Password = hashedPassword
-				// Save the user data to the database
-				InsertUserdata(mconn, userdata.Username, userdata.Email, userdata.Role, userdata.Password)
-				// Optionally, generate and return a token for the newly registered user
-				tokenstring, err := watoken.Encode(userdata.Username, os.Getenv(Privatekey))
-				if err != nil {
-					resp.Message = "Failed to encode token: " + err.Error()
-				} else {
-					resp.Status = true
-					resp.Message = "Registration successful. Welcome!"
-					resp.Token = tokenstring
-				}
-			}
-		}
-	}
+		
+
 	return GCFReturnStruct(resp)
 }
+
+func IsUserExist(mconn *mongo.Database, colname, username string) bool {
+	filter := bson.M{"username": username}
+	return GetOneUser(mconn, colname, filter) != nil
+}
+
 
 
 func ReturnStringStruct(Data any) string {
