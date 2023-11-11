@@ -256,12 +256,13 @@ func Register(Privatekey, MongoEnv, dbname, Colname string, r *http.Request) str
 		existingUser, err := GetByNameOrEmail(mconn, Colname, userdata.Username)
 		if err == nil {
 			resp.Message = "Username or email is already registered."
-		} else {
+		} else { 
 			// Hash the password before storing it in the database
 			hashedPassword, err := HashPassword(userdata.Password)
 			if err != nil {
 				resp.Message = "Failed to hash password: " + err.Error()
 			} else {
+				fmt.Printf("User: %v\n", existingUser)
 				userdata.Password = hashedPassword
 				// Save the user data to the database
 				InsertUserdata(mconn, userdata.Username, userdata.Email, userdata.Role, userdata.Password)

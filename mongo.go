@@ -88,8 +88,17 @@ func GetNameAndPassowrd(mongoconn *mongo.Database, collection string) []User {
 	return user
 }
 
-func GetByNameOrEmail(mongoconn *mongo.Database, collection, identifier string) (User, error) {
+func DecodeUser(result bson.M) (User, error) {
     var user User
+
+    // convert result to User object
+    // handle any necessary error checking or type conversion
+
+    return user, nil
+}
+
+func GetByNameOrEmail(mongoconn *mongo.Database, collection, identifier string) (User, error) {
+    var userdata User
 
     filter := bson.M{
         "$or": []bson.M{
@@ -98,7 +107,12 @@ func GetByNameOrEmail(mongoconn *mongo.Database, collection, identifier string) 
         },
     }
 
-    err := atdb.GetOneDoc(mongoconn, collection, filter)
+    result := atdb.GetOneDoc(mongoconn, collection, filter, &userdata)
+    if result == nil {
+        return User{}, errors.New("document not found")
+    }
+
+    user, err := DecodeUser(result)
     if err != nil {
         return User{}, err
     }
@@ -106,19 +120,21 @@ func GetByNameOrEmail(mongoconn *mongo.Database, collection, identifier string) 
     return user, nil
 }
 
+func GetOneDoc(mongoconn *mongo.Database, collection string, filter bson.M) (User, error) {
+    var user User
 
-func GetOneDoc(mongoconn *mongo.Database, collection string, filter bson.M, result interface{}) error {
-	ctx := context.TODO()
+    ctx := context.TODO()
 
-	err := mongoconn.Collection(collection).FindOne(ctx, filter).Decode(result)
-	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return errors.New("document not found")
-		}
-		return err
-	}
+    err := mongoconn.Collection(collection).FindOne(ctx, filter).Decode(&user)
+    if err != nil {
+        if errors.Is(err, mongo.ErrNoDocuments) {
+            return User{}, errors.New("document not found")
+        }
+        return User{}, err
 
-	return nil
+    }
+
+    return user, nil
 }
 
 
