@@ -283,6 +283,27 @@ func RegisterAdmin(Mongoenv, dbname string, r *http.Request) string {
 		if err != nil {
 			resp.Message = "Gagal Hash Password" + err.Error()
 		}
+		InsertUserdata(conn, admindata.Username, admindata.Email, admindata.Role, hash)
+		resp.Message = "Berhasil Input data"
+	}
+	response := ReturnStringStruct(resp)
+	return response
+}
+
+func RegisterAdmin(Mongoenv, dbname string, r *http.Request) string {
+	resp := new(Credential)
+	admindata := new(Admin)
+	resp.Status = false
+	conn := GetConnectionMongo(Mongoenv, dbname)
+	err := json.NewDecoder(r.Body).Decode(&admindata)
+	if err != nil {
+		resp.Message = "error parsing application/json: " + err.Error()
+	} else {
+		resp.Status = true
+		hash, err := HashPassword(admindata.Password)
+		if err != nil {
+			resp.Message = "Gagal Hash Password" + err.Error()
+		}
 		InsertAdmindata(conn, admindata.Username, admindata.Email, admindata.Role, hash)
 		resp.Message = "Berhasil Input data"
 	}

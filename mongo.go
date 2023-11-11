@@ -87,6 +87,26 @@ func GetNameAndPassowrd(mongoconn *mongo.Database, collection string) []User {
 	return user
 }
 
+func GetByNameOrEmail(mongoconn *mongo.Database, collection, identifier string) (User, error) {
+    var user User
+
+    filter := bson.M{
+        "$or": []bson.M{
+            {"username": identifier},
+            {"email": identifier},
+        },
+    }
+
+    err := atdb.GetOneDoc(mongoconn, collection, filter, &user)
+    if err != nil {
+        // Handle the error, such as returning an empty user and the error
+        return User{}, err
+    }
+
+    return user, nil
+}
+
+
 func CreateNewUserRole(mongoconn *mongo.Database, collection string, userdata User) interface{} {
 	// Hash the password before storing it
 	hashedPassword, err := HashPassword(userdata.Password)
@@ -121,26 +141,26 @@ func CreateUserAndAddedToeken(PASETOPRIVATEKEYENV string, mongoconn *mongo.Datab
 	return atdb.ReplaceOneDoc(mongoconn, collection, bson.M{"username": userdata.Username}, userdata)
 }
 
-func CreateAdminAndAddedToken(PASETOPRIVATEKEYENV string, mongoconn *mongo.Database, collection string, userdata User) interface{} {
+func CreateAdminAndAddedToken(PASETOPRIVATEKEYENV string, mongoconn *mongo.Database, collection string, admindata Admin) interface{} {
 	// Hash the password before storing it
-	hashedPassword, err := HashPassword(userdata.Password)
+	hashedPassword, err := HashPassword(admindata.Password)
 	if err != nil {
 		return err
 	}
-	userdata.Password = hashedPassword
+	admindata.Password = hashedPassword
 
 	// Insert the user data into the database
-	atdb.InsertOneDoc(mongoconn, collection, userdata)
+	atdb.InsertOneDoc(mongoconn, collection, admindata)
 
 	// Create a token for the user
-	tokenstring, err := watoken.Encode(userdata.Username, os.Getenv(PASETOPRIVATEKEYENV))
+	tokenstring, err := watoken.Encode(admindata.Email, os.Getenv(PASETOPRIVATEKEYENV))
 	if err != nil {
 		return err
 	}
-	userdata.Token = tokenstring
+	admindata.Token = tokenstring
 
 	// Update the user data in the database
-	return atdb.ReplaceOneDoc(mongoconn, collection, bson.M{"username": userdata.Username}, userdata)
+	return atdb.ReplaceOneDoc(mongoconn, collection, bson.M{"email": admindata.Email}, admindata)
 }
 
 func DeleteUser(mongoconn *mongo.Database, collection string, userdata User) interface{} {
