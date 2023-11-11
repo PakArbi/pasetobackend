@@ -283,7 +283,7 @@ func RegisterAdmin(Mongoenv, dbname string, r *http.Request) string {
 		if err != nil {
 			resp.Message = "Gagal Hash Password" + err.Error()
 		}
-		InsertAdmindata(conn, admindata.Email, admindata.Role, hash)
+		InsertAdmindata(conn, admindata.Username, admindata.Email, admindata.Role, hash)
 		resp.Message = "Berhasil Input data"
 	}
 	response := ReturnStringStruct(resp)
