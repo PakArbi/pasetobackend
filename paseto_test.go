@@ -18,6 +18,15 @@ func TestCreateNewUserRole(t *testing.T) {
 	CreateNewUserRole(mconn, "user", userdata)
 }
 
+func TestCreateNewAdminRole(t *testing.T) {
+	var userdata User
+	userdata.Username = "admin"
+	userdata.Password = "admin123"
+	userdata.Role = "admin"
+	mconn := SetConnection("MONGOSTRING", "PakArbi")
+	CreateNewUserRole(mconn, "admin", userdata)
+}
+
 // func TestDeleteUser(t *testing.T) {
 // 	mconn := SetConnection("MONGOSTRING", "pasabar13")
 // 	var userdata User
@@ -26,6 +35,23 @@ func TestCreateNewUserRole(t *testing.T) {
 // }
 
 func CreateNewUserToken(t *testing.T) {
+	var userdata User
+	userdata.Username = "faisal"
+	userdata.Password = "sankuy"
+	userdata.Role = "user"
+
+	// Create a MongoDB connection
+	mconn := SetConnection("MONGOSTRING", "PakArbi")
+
+	// Call the function to create a user and generate a token
+	err := CreateUserAndAddToken("your_private_key_env", mconn, "user", userdata)
+
+	if err != nil {
+		t.Errorf("Error creating user and token: %v", err)
+	}
+}
+
+func CreateNewAdminToken(t *testing.T) {
 	var userdata User
 	userdata.Username = "faisal"
 	userdata.Password = "sankuy"

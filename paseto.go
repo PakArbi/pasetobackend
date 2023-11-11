@@ -262,7 +262,7 @@ func RegisterUser(Mongoenv, dbname string, r *http.Request) string {
 		if err != nil {
 			resp.Message = "Gagal Hash Password" + err.Error()
 		}
-		InsertUserdata(conn, userdata.Username, userdata.Role, hash)
+		InsertUserdata(conn, userdata.Username, userdata.Email, userdata.Role, hash)
 		resp.Message = "Berhasil Input data"
 	}
 	response := ReturnStringStruct(resp)
@@ -271,19 +271,19 @@ func RegisterUser(Mongoenv, dbname string, r *http.Request) string {
 
 func RegisterAdmin(Mongoenv, dbname string, r *http.Request) string {
 	resp := new(Credential)
-	userdata := new(Admin)
+	admindata := new(Admin)
 	resp.Status = false
 	conn := GetConnectionMongo(Mongoenv, dbname)
-	err := json.NewDecoder(r.Body).Decode(&userdata)
+	err := json.NewDecoder(r.Body).Decode(&admindata)
 	if err != nil {
 		resp.Message = "error parsing application/json: " + err.Error()
 	} else {
 		resp.Status = true
-		hash, err := HashPassword(userdata.Password)
+		hash, err := HashPassword(admindata.Password)
 		if err != nil {
 			resp.Message = "Gagal Hash Password" + err.Error()
 		}
-		InsertUserdata(conn, userdata.Username, userdata.Role, hash)
+		InsertAdmindata(conn, admindata.Email, admindata.Role, hash)
 		resp.Message = "Berhasil Input data"
 	}
 	response := ReturnStringStruct(resp)
