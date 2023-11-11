@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"context"
+	
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"golang.org/x/crypto/bcrypt"
@@ -243,6 +244,43 @@ func Login(Privatekey, MongoEnv, dbname, Colname string, r *http.Request) string
 	return GCFReturnStruct(resp)
 }
 
+func Register(Privatekey, MongoEnv, dbname, Colname string, r *http.Request) string {
+	var resp Credential
+	mconn := SetConnection(MongoEnv, dbname)
+	var userdata User
+	err := json.NewDecoder(r.Body).Decode(&userdata)
+	if err != nil {
+		resp.Message = "error parsing application/json: " + err.Error()
+	} else {
+		// Check if the username or email is already registered
+		existingUser, err := GetByNameOrEmail(mconn, Colname, userdata.Username)
+		if err == nil {
+			resp.Message = "Username or email is already registered."
+		} else {
+			// Hash the password before storing it in the database
+			hashedPassword, err := HashPassword(userdata.Password)
+			if err != nil {
+				resp.Message = "Failed to hash password: " + err.Error()
+			} else {
+				userdata.Password = hashedPassword
+				// Save the user data to the database
+				InsertUserdata(mconn, userdata.Username, userdata.Email, userdata.Role, userdata.Password)
+				// Optionally, generate and return a token for the newly registered user
+				tokenstring, err := watoken.Encode(userdata.Username, os.Getenv(Privatekey))
+				if err != nil {
+					resp.Message = "Failed to encode token: " + err.Error()
+				} else {
+					resp.Status = true
+					resp.Message = "Registration successful. Welcome!"
+					resp.Token = tokenstring
+				}
+			}
+		}
+	}
+	return GCFReturnStruct(resp)
+}
+
+
 func ReturnStringStruct(Data any) string {
 	jsonee, _ := json.Marshal(Data)
 	return string(jsonee)
@@ -284,27 +322,6 @@ func RegisterAdmin(Mongoenv, dbname string, r *http.Request) string {
 			resp.Message = "Gagal Hash Password" + err.Error()
 		}
 		InsertUserdata(conn, admindata.Username, admindata.Email, admindata.Role, hash)
-		resp.Message = "Berhasil Input data"
-	}
-	response := ReturnStringStruct(resp)
-	return response
-}
-
-func RegisterAdmin(Mongoenv, dbname string, r *http.Request) string {
-	resp := new(Credential)
-	admindata := new(Admin)
-	resp.Status = false
-	conn := GetConnectionMongo(Mongoenv, dbname)
-	err := json.NewDecoder(r.Body).Decode(&admindata)
-	if err != nil {
-		resp.Message = "error parsing application/json: " + err.Error()
-	} else {
-		resp.Status = true
-		hash, err := HashPassword(admindata.Password)
-		if err != nil {
-			resp.Message = "Gagal Hash Password" + err.Error()
-		}
-		InsertAdmindata(conn, admindata.Username, admindata.Email, admindata.Role, hash)
 		resp.Message = "Berhasil Input data"
 	}
 	response := ReturnStringStruct(resp)

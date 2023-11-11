@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"errors"
 
 	"github.com/aiteung/atdb"
 	"github.com/whatsauth/watoken"
@@ -97,13 +98,27 @@ func GetByNameOrEmail(mongoconn *mongo.Database, collection, identifier string) 
         },
     }
 
-    err := atdb.GetOneDoc(mongoconn, collection, filter, &user)
+    err := atdb.GetOneDoc(mongoconn, collection, filter)
     if err != nil {
-        // Handle the error, such as returning an empty user and the error
         return User{}, err
     }
 
     return user, nil
+}
+
+
+func GetOneDoc(mongoconn *mongo.Database, collection string, filter bson.M, result interface{}) error {
+	ctx := context.TODO()
+
+	err := mongoconn.Collection(collection).FindOne(ctx, filter).Decode(result)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return errors.New("document not found")
+		}
+		return err
+	}
+
+	return nil
 }
 
 
