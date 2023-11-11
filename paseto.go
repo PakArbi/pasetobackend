@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"context"
-	
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"golang.org/x/crypto/bcrypt"
@@ -243,36 +242,6 @@ func Login(Privatekey, MongoEnv, dbname, Colname string, r *http.Request) string
 	}
 	return GCFReturnStruct(resp)
 }
-
-func Register(MongoEnv, dbname string, r *http.Request) string {
-	var resp Credential
-	mconn := SetConnection(MongoEnv, dbname)
-	var datauser User
-	var err error
-	err = json.NewDecoder(r.Body).Decode(&datauser)
-	if err != nil {
-		resp.Message = "error parsing application/json: " + err.Error()
-	} else {
-		// Verifikasi apakah pengguna sudah terdaftar
-		if IsUserExist(mconn, "users", datauser.Username) {
-			resp.Message = "Pengguna dengan username tersebut sudah terdaftar"
-		} else {
-			// Hash password sebelum disimpan
-			hashedPassword, err := HashPassword(datauser.Password)
-			if err != nil {
-				resp.Message = "Gagal hash password: " + err.Error()
-			} else {
-		
-
-	return GCFReturnStruct(resp)
-}
-
-func IsUserExist(mconn *mongo.Database, colname, username string) bool {
-	filter := bson.M{"username": username}
-	return GetOneUser(mconn, colname, filter) != nil
-}
-
-
 
 func ReturnStringStruct(Data any) string {
 	jsonee, _ := json.Marshal(Data)
