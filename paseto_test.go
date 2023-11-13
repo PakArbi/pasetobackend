@@ -55,7 +55,7 @@ func CreateNewAdminToken(t *testing.T) {
 	var userdata User
 	userdata.Username = "admin"
 	userdata.Password = "admin123"
-	userdata.Role = "user"
+	userdata.Role = "admin"
 
 	// Create a MongoDB connection
 	mconn := SetConnection("MONGOSTRING", "PakArbi")
@@ -139,8 +139,8 @@ func TestHashAdminFunction(t *testing.T) {
     filterUsername := bson.M{"username": admindata.Username}
     filterEmail := bson.M{"email": admindata.Email}
 
-    resByUsername := atdb.GetOneDoc[User](mconn, "user", filterUsername)
-    resByEmail := atdb.GetOneDoc[User](mconn, "user", filterEmail)
+    resByUsername := atdb.GetOneDoc[User](mconn, "admin", filterUsername)
+    resByEmail := atdb.GetOneDoc[User](mconn, "admin", filterEmail)
 
     fmt.Println("Mongo User Result (by username): ", resByUsername)
     fmt.Println("Mongo User Result (by email): ", resByEmail)
