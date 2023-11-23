@@ -51,6 +51,32 @@ func GCFFindUserByName(MONGOCONNSTRINGENV, dbname, collectionname string, r *htt
 	return "false"
 }
 
+func GCFFindAdminByEmail(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	var dataadmin Admin
+	err := json.NewDecoder(r.Body).Decode(&dataadmin)
+	if err != nil {
+		return err.Error()
+	}
+
+	// Jika email kosong, maka respon "false" dan data tidak ada
+	if dataadmin.Email == "" {
+		return "false"
+	}
+
+	// Jika ada email, mencari data admin
+	admin := FindAdminByEmail(mconn, collectionname, dataadmin.Email)
+
+	// Jika data admin ditemukan, mengembalikan data admin dalam format yang sesuai
+	if admin != (Admin{}) {
+		return GCFReturnStructAdmin(admin)
+	}
+
+	// Jika tidak ada data admin yang ditemukan, mengembalikan "false" dan data tidak ada
+	return "false"
+}
+
+
 func GCFDeleteHandler(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
 	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
 	var datauser User
@@ -64,13 +90,13 @@ func GCFDeleteHandler(MONGOCONNSTRINGENV, dbname, collectionname string, r *http
 
 func GCFDeleteHandlerAdmin(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
 	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
-	var datauser User
-	err := json.NewDecoder(r.Body).Decode(&datauser)
+	var dataadmin Admin
+	err := json.NewDecoder(r.Body).Decode(&dataadmin)
 	if err != nil {
 		return err.Error()
 	}
-	DeleteUser(mconn, collectionname, datauser)
-	return GCFReturnStruct(datauser)
+	DeleteUser(mconn, collectionname, dataadmin)
+	return GCFReturnStructAdmin(dataadmin)
 }
 
 func GCFUpdateHandler(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
@@ -92,7 +118,7 @@ func GCFUpdateHandlerAdmin(MONGOCONNSTRINGENV, dbname, collectionname string, r 
 		return err.Error()
 	}
 	ReplaceOneDoc(mconn, collectionname, bson.M{"email": dataadmin.Email}, dataadmin)
-	return GCFReturnStruct(dataadmin)
+	return GCFReturnStructAdmin(dataadmin)
 }
 
 func GCFCreateHandler(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
@@ -189,7 +215,7 @@ func GCFRegisterAdmin(email, password, role, mongoConnectionString, dbName strin
     }
 
     // Data pengguna baru
-    newAdmin := User{
+    newAdmin := Admin{
         Email: email,
         Password: string(hashedPassword),
         Role:     role,
