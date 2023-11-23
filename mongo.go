@@ -36,7 +36,7 @@ func CreateUser(mongoconn *mongo.Database, collection string, userdata User) int
 		return err
 	}
 	privateKey, publicKey := watoken.GenerateKey()
-	userid := userdata.Username
+	userid := userdata.Email
 	tokenstring, err := watoken.Encode(userid, privateKey)
 	if err != nil {
 		fmt.Println(err)
@@ -63,13 +63,13 @@ func CreateAdmin(mongoconn *mongo.Database, collection string, admindata Admin) 
 		return err
 	}
 	privateKey, publicKey := watoken.GenerateKey()
-	userid := admindata.Email
-	tokenstring, err := watoken.Encode(userid, privateKey)
+	adminid := admindata.Email
+	tokenstring, err := watoken.Encode(adminid, privateKey)
 	if err != nil {
 		fmt.Println(err)
 	}
 	fmt.Println(tokenstring)
-	// decode token to get userid
+	// decode token to get adminid
 	useridstring := watoken.DecodeGetId(publicKey, tokenstring)
 	if useridstring == "" {
 		fmt.Println("expire token")
@@ -101,7 +101,19 @@ func CreateNewUserRole(mongoconn *mongo.Database, collection string, userdata Us
 	return atdb.InsertOneDoc(mongoconn, collection, userdata)
 }
 
-func CreateUserAndAddedToeken(PASETOPRIVATEKEYENV string, mongoconn *mongo.Database, collection string, userdata User) interface{} {
+func CreateNewAdminRole(mongoconn *mongo.Database, collection string, admindata Admin) interface{} {
+	// Hash the password before storing it
+	hashedPassword, err := HashPassword(admindata.Password)
+	if err != nil {
+		return err
+	}
+	admindata.Password = hashedPassword
+
+	// Insert the user data into the database
+	return atdb.InsertOneDoc(mongoconn, collection, admindata)
+}
+
+func CreateUserAndAddedToken(PASETOPRIVATEKEYENV string, mongoconn *mongo.Database, collection string, userdata User) interface{} {
 	// Hash the password before storing it
 	hashedPassword, err := HashPassword(userdata.Password)
 	if err != nil {
@@ -113,14 +125,14 @@ func CreateUserAndAddedToeken(PASETOPRIVATEKEYENV string, mongoconn *mongo.Datab
 	atdb.InsertOneDoc(mongoconn, collection, userdata)
 
 	// Create a token for the user
-	tokenstring, err := watoken.Encode(userdata.Username, os.Getenv(PASETOPRIVATEKEYENV))
+	tokenstring, err := watoken.Encode(userdata.Email, os.Getenv(PASETOPRIVATEKEYENV))
 	if err != nil {
 		return err
 	}
 	userdata.Token = tokenstring
 
 	// Update the user data in the database
-	return atdb.ReplaceOneDoc(mongoconn, collection, bson.M{"username": userdata.Username}, userdata)
+	return atdb.ReplaceOneDoc(mongoconn, collection, bson.M{"email": userdata.Email}, userdata)
 }
 
 func CreateAdminAndAddedToken(PASETOPRIVATEKEYENV string, mongoconn *mongo.Database, collection string, admindata Admin) interface{} {
@@ -146,7 +158,12 @@ func CreateAdminAndAddedToken(PASETOPRIVATEKEYENV string, mongoconn *mongo.Datab
 }
 
 func DeleteUser(mongoconn *mongo.Database, collection string, userdata User) interface{} {
-	filter := bson.M{"username": userdata.Username}
+	filter := bson.M{"username": userdata.Email}
+	return atdb.DeleteOneDoc(mongoconn, collection, filter)
+}
+
+func DeleteAdmin(mongoconn *mongo.Database, collection string, admindata Admin) interface{} {
+	filter := bson.M{"email": admindata.Email}
 	return atdb.DeleteOneDoc(mongoconn, collection, filter)
 }
 

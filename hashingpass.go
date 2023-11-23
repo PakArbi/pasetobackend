@@ -2,6 +2,7 @@ package pasetobackend
 
 import (
 	"golang.org/x/crypto/bcrypt"
+	"regexp"
 )
 
 func HashPassword(password string) (string, error) {
@@ -12,6 +13,13 @@ func HashPassword(password string) (string, error) {
 func CheckPasswordHash(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
+}
+
+func CheckEmailFormat(email string) bool {
+	// Regular expression pattern for basic email validation
+	emailRegexPattern := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+	match, _ := regexp.MatchString(emailRegexPattern, email)
+	return match
 }
 
 func CreateResponse(status bool, message string, data interface{}) Response {
