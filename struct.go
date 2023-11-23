@@ -1,7 +1,7 @@
 package pasetobackend
 
 type User struct {
-	Username string `json:"username" bson:"username"`
+	Username string `json:"npm" bson:"npm"`
 	Email    string `bson:"email,omitempty" json:"email,omitempty"`
 	Password string `json:"password" bson:"password"`
 	PasswordHash string `json:"passwordhash" bson:"passwordhash"`
@@ -12,7 +12,7 @@ type User struct {
 }
 
 type Admin struct {
-	Username string `json:"username" bson:"username"`
+	Username string `json:"npm" bson:"npm"`
 	Email    string `bson:"email,omitempty" json:"email,omitempty"`
 	Password string `json:"password" bson:"password"`
 	PasswordHash string `json:"passwordhash" bson:"passwordhash"`

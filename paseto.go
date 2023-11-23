@@ -95,7 +95,7 @@ func GCFDeleteHandlerAdmin(MONGOCONNSTRINGENV, dbname, collectionname string, r 
 	if err != nil {
 		return err.Error()
 	}
-	DeleteUser(mconn, collectionname, dataadmin)
+	DeleteAdmin(mconn, collectionname, dataadmin)
 	return GCFReturnStructAdmin(dataadmin)
 }
 
@@ -106,7 +106,7 @@ func GCFUpdateHandler(MONGOCONNSTRINGENV, dbname, collectionname string, r *http
 	if err != nil {
 		return err.Error()
 	}
-	ReplaceOneDoc(mconn, collectionname, bson.M{"email": datauser.Email}, datauser)
+	ReplaceOneDocAdmin(mconn, collectionname, bson.M{"email": datauser.Email}, datauser)
 	return GCFReturnStruct(datauser)
 }
 
@@ -117,7 +117,7 @@ func GCFUpdateHandlerAdmin(MONGOCONNSTRINGENV, dbname, collectionname string, r 
 	if err != nil {
 		return err.Error()
 	}
-	ReplaceOneDoc(mconn, collectionname, bson.M{"email": dataadmin.Email}, dataadmin)
+	ReplaceOneDocAdmin(mconn, collectionname, bson.M{"email": dataadmin.Email}, dataadmin)
 	return GCFReturnStructAdmin(dataadmin)
 }
 

@@ -11,7 +11,7 @@ import (
 
 func TestCreateNewUserRole(t *testing.T) {
 	var userdata User
-	userdata.Username = "faisal"
+	userdata.Email = "faisalsidiq14@gmail.com"
 	userdata.Password = "sankuy"
 	userdata.Role = "user"
 	mconn := SetConnection("MONGOSTRING", "PakArbi")
@@ -19,17 +19,17 @@ func TestCreateNewUserRole(t *testing.T) {
 }
 
 func TestCreateNewAdminRole(t *testing.T) {
-	var userdata User
-	userdata.Username = "admin"
-	userdata.Password = "admin123"
-	userdata.Role = "admin"
+	var admindata Admin
+	admindata.Email = "1214041@std.ulbi.ac.id"
+	admindata.Password = "admin123"
+	admindata.Role = "admin"
 	mconn := SetConnection("MONGOSTRING", "PakArbi")
-	CreateNewUserRole(mconn, "admin", userdata)
+	CreateNewAdminRole(mconn, "admin", admindata)
 }
 
 func CreateNewUserToken(t *testing.T) {
 	var userdata User
-	userdata.Username = "faisal"
+	userdata.Email = "faisalsidiq14@gmail.com"
 	userdata.Password = "sankuy"
 	userdata.Role = "user"
 
@@ -54,7 +54,7 @@ func CreateNewAdminToken(t *testing.T) {
 	mconn := SetConnection("MONGOSTRING", "PakArbi")
 
 	// Call the function to create a user and generate a token
-	err := CreateUserAndAddToken("your_private_key_env", mconn, "user", userdata)
+	err := CreateUserAndAddToken("your_private_key_env", mconn, "admin", userdata)
 
 	if err != nil {
 		t.Errorf("Error creating user and token: %v", err)
@@ -64,7 +64,7 @@ func CreateNewAdminToken(t *testing.T) {
 func TestGFCPostHandlerUser(t *testing.T) {
 	mconn := SetConnection("MONGOSTRING", "PakArbi")
 	var userdata User
-	userdata.Email = "faisal"
+	userdata.Email = "faisalsidiq14@gmail.com"
 	userdata.Password = "sankuy"
 	userdata.Role = "user"
 	CreateNewUserRole(mconn, "user", userdata)

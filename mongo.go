@@ -136,6 +136,11 @@ func CreateUserAndAddedToken(PASETOPRIVATEKEYENV string, mongoconn *mongo.Databa
 }
 
 func CreateAdminAndAddedToken(PASETOPRIVATEKEYENV string, mongoconn *mongo.Database, collection string, admindata Admin) interface{} {
+	// Validate the email format
+	if !CheckEmailFormat(admindata.Email) {
+		return errors.New("Invalid email format")
+	}
+
 	// Hash the password before storing it
 	hashedPassword, err := HashPassword(admindata.Password)
 	if err != nil {
@@ -169,6 +174,10 @@ func DeleteAdmin(mongoconn *mongo.Database, collection string, admindata Admin) 
 
 func ReplaceOneDoc(mongoconn *mongo.Database, collection string, filter bson.M, userdata User) interface{} {
 	return atdb.ReplaceOneDoc(mongoconn, collection, filter, userdata)
+}
+
+func ReplaceOneDocAdmin(mongoconn *mongo.Database, collection string, filter bson.M, admindata Admin) interface{} {
+	return atdb.ReplaceOneDocAdmin(mongoconn, collection, filter, admindata)
 }
 
 func FindUser(mongoconn *mongo.Database, collection string, userdata User) User {
