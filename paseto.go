@@ -28,9 +28,9 @@ func GCFFindUserByID(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.
 	if datauser.Email != "" {
 		key = "email"
 	} else if datauser.Username != "" {
-		key = "username"
+		key = "npm"
 	} else {
-		return "Invalid input: neither email nor username provided"
+		return "Invalid input: neither email nor npm provided"
 	}
 
 	user := FindUser(mconn, collectionname, key, datauser.Email)
