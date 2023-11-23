@@ -22,34 +22,45 @@ func GCFFindUserByID(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.
 	if err != nil {
 		return err.Error()
 	}
-	user := FindUser(mconn, collectionname, datauser)
+
+	// Decide whether to search by email or username based on the provided data
+	var key string
+	if datauser.Email != "" {
+		key = "email"
+	} else if datauser.Username != "" {
+		key = "username"
+	} else {
+		return "Invalid input: neither email nor username provided"
+	}
+
+	user := FindUser(mconn, collectionname, key, datauser.Email)
 	return GCFReturnStruct(user)
 }
 
-func GCFFindUserByName(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
-	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
-	var datauser User
-	err := json.NewDecoder(r.Body).Decode(&datauser)
-	if err != nil {
-		return err.Error()
-	}
+// func GCFFindUserByName(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
+// 	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+// 	var datauser User
+// 	err := json.NewDecoder(r.Body).Decode(&datauser)
+// 	if err != nil {
+// 		return err.Error()
+// 	}
 
-	// Jika username kosong, maka respon "false" dan data tidak ada
-	if datauser.Username == "" {
-		return "false"
-	}
+// 	// Jika username kosong, maka respon "false" dan data tidak ada
+// 	if datauser.Username == "" {
+// 		return "false"
+// 	}
 
-	// Jika ada username, mencari data pengguna
-	user := FindUser(mconn, collectionname, datauser)
+// 	// Jika ada username, mencari data pengguna
+// 	user := FindUser(mconn, collectionname, datauser)
 
-	// Jika data pengguna ditemukan, mengembalikan data pengguna dalam format yang sesuai
-	if user != (User{}) {
-		return GCFReturnStruct(user)
-	}
+// 	// Jika data pengguna ditemukan, mengembalikan data pengguna dalam format yang sesuai
+// 	if user != (User{}) {
+// 		return GCFReturnStruct(user)
+// 	}
 
-	// Jika tidak ada data pengguna yang ditemukan, mengembalikan "false" dan data tidak ada
-	return "false"
-}
+// 	// Jika tidak ada data pengguna yang ditemukan, mengembalikan "false" dan data tidak ada
+// 	return "false"
+// }
 
 func GCFFindAdminByEmail(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
 	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
@@ -106,7 +117,7 @@ func GCFUpdateHandler(MONGOCONNSTRINGENV, dbname, collectionname string, r *http
 	if err != nil {
 		return err.Error()
 	}
-	ReplaceOneDocAdmin(mconn, collectionname, bson.M{"email": datauser.Email}, datauser)
+	ReplaceOneDoc(mconn, collectionname, bson.M{"email": datauser.Email}, datauser)
 	return GCFReturnStruct(datauser)
 }
 
@@ -327,7 +338,7 @@ func GCFPostHandlerAdmin(PASETOPRIVATEKEYENV, MONGOCONNSTRINGENV, dbname, collec
 	if err != nil {
 		Response.Message = "error parsing application/json: " + err.Error()
 	} else {
-		if IsPasswordValid(mconn, collectionname, dataadmin) {
+		if IsPasswordValidAdmin(mconn, collectionname, dataadmin) {
 			Response.Status = true
 			tokenstring, err := watoken.Encode(dataadmin.Email, os.Getenv(PASETOPRIVATEKEYENV))
 			if err != nil {
@@ -422,7 +433,7 @@ func LoginAdmin(Privatekey, MongoEnv, dbname, Colname string, r *http.Request) s
 	if err != nil {
 		resp.Message = "error parsing application/json: " + err.Error()
 	} else {
-		if IsPasswordValid(mconn, Colname, dataadmin) {
+		if IsPasswordValidAdmin(mconn, Colname, dataadmin) {
 			tokenstring, err := watoken.Encode(dataadmin.Email, os.Getenv(Privatekey))
 			if err != nil {
 				resp.Message = "Gagal Encode Token : " + err.Error()

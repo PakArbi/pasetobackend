@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"errors"
 	
 
 	"github.com/aiteung/atdb"
@@ -177,18 +178,32 @@ func ReplaceOneDoc(mongoconn *mongo.Database, collection string, filter bson.M, 
 }
 
 func ReplaceOneDocAdmin(mongoconn *mongo.Database, collection string, filter bson.M, admindata Admin) interface{} {
-	return atdb.ReplaceOneDocAdmin(mongoconn, collection, filter, admindata)
+	return atdb.ReplaceOneDoc(mongoconn, collection, filter, admindata)
 }
 
-func FindUser(mongoconn *mongo.Database, collection string, userdata User) User {
-	filter := bson.M{"username": userdata.Username}
+func FindUser(mongoconn *mongo.Database, collection string, key, value string) User {
+	filter := bson.M{"$or": []bson.M{
+		{key: value},
+	}}
+
 	return atdb.GetOneDoc[User](mongoconn, collection, filter)
+}
+
+func FindAdminByEmail(mongoconn *mongo.Database, collection string, email string) Admin {
+	filter := bson.M{"email": email}
+	return atdb.GetOneDoc[Admin](mongoconn, collection, filter)
 }
 
 func IsPasswordValid(mongoconn *mongo.Database, collection string, userdata User) bool {
 	filter := bson.M{"username": userdata.Username}
 	res := atdb.GetOneDoc[User](mongoconn, collection, filter)
 	return CheckPasswordHash(userdata.Password, res.Password)
+}
+
+func IsPasswordValidAdmin(mongoconn *mongo.Database, collection string, admindata Admin) bool {
+	filter := bson.M{"username": admindata.Email}
+	res := atdb.GetOneDoc[Admin](mongoconn, collection, filter)
+	return CheckPasswordHash(admindata.Password, res.Password)
 }
 
 func CreateUserAndAddToken(privateKeyEnv string, mongoconn *mongo.Database, collection string, userdata User) error {

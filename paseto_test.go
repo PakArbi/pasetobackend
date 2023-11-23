@@ -168,7 +168,7 @@ func TestIsAdminPasswordValid(t *testing.T) {
 	admindata.Email = "1214041@std.ulbi.ac.id"
 	admindata.Password = "admin123"
 
-	anu := IsPasswordValid(mconn, "admin", admindata)
+	anu := IsPasswordValidAdmin(mconn, "admin", admindata)
 	fmt.Println(anu)
 }
 
