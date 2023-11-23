@@ -16,11 +16,12 @@ func CheckPasswordHash(password, hash string) bool {
 }
 
 func CheckEmailFormat(email string) bool {
-	// Regular expression pattern for basic email validation
-	emailRegexPattern := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+	// Regular expression pattern for email validation including npm@std.ulbi.ac.id format
+	emailRegexPattern := `^[a-zA-Z0-9._%+-]+@std\.ulbi\.ac\.id$`
 	match, _ := regexp.MatchString(emailRegexPattern, email)
 	return match
 }
+
 
 func CreateResponse(status bool, message string, data interface{}) Response {
 	response := Response{
