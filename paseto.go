@@ -169,23 +169,23 @@ func GCFUpdateHandlerAdmin(MONGOCONNSTRINGENV, dbname, collectionname string, r 
 
 func GCFCreateHandlerAdmin(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
 	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
-	var dataadmin Admin
-	err := json.NewDecoder(r.Body).Decode(&dataadmin)
+	var datauser User
+	err := json.NewDecoder(r.Body).Decode(&datauser)
 	if err != nil {
 		return err.Error()
 	}
 
 	// Hash the password before storing it
-	hashedPassword, hashErr := HashPassword(dataadmin.Password)
+	hashedPassword, hashErr := HashPassword(datauser.Password)
 	if hashErr != nil {
 		return hashErr.Error()
 	}
-	dataadmin.Password = hashedPassword
+	datauser.Password = hashedPassword
 
-	createErr := CreateNewAdminRole(mconn, collectionname, dataadmin)
+	createErr := CreateNewUserRole(mconn, collectionname, datauser)
 	fmt.Println(createErr)
 
-	return GCFReturnStruct(dataadmin)
+	return GCFReturnStruct(datauser)
 }
 //end Admin Handler
 

@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"os"
 	"regexp"
-	// "crypto/sha256"
-    // "encoding/hex"
 	
 
 	"github.com/aiteung/atdb"
@@ -66,18 +64,18 @@ func CreateAdmin(mongoconn *mongo.Database, collection string, admindata Admin) 
 		return err
 	}
 	privateKey, publicKey := watoken.GenerateKey()
-	adminid := admindata.Email
-	tokenstring, err := watoken.Encode(adminid, privateKey)
+	userid := admindata.Email
+	tokenstring, err := watoken.Encode(userid, privateKey)
 	if err != nil {
 		fmt.Println(err)
 	}
 	fmt.Println(tokenstring)
 	// decode token to get userid
-	adminidstring := watoken.DecodeGetId(publicKey, tokenstring)
-	if adminidstring == "" {
+	useridstring := watoken.DecodeGetId(publicKey, tokenstring)
+	if useridstring == "" {
 		fmt.Println("expire token")
 	}
-	fmt.Println(adminidstring)
+	fmt.Println(useridstring)
 	admindata.Private = privateKey
 	admindata.Public = publicKey
 	admindata.Password = hashedPassword
@@ -117,17 +115,11 @@ func GetEmailAndPasswordAdmin(mongoconn *mongo.Database, collection string) []Ad
 
 
 func CreateNewUserRole(mongoconn *mongo.Database, collection string, userdata User) interface{} {
-	//Hash the Email before storing it
-	// Hash the Email before storing it
-    hashedEmail := HashEmail(userdata.Email)
-	
 	// Hash the password before storing it
 	hashedPassword, err := HashPassword(userdata.Password)
 	if err != nil {
 		return err
 	}
-
-	userdata.Email = hashedEmail
 	userdata.Password = hashedPassword
 
 	// Insert the user data into the database
@@ -147,14 +139,11 @@ func CreateNewAdminRole(mongoconn *mongo.Database, collection string, admindata 
 }
 
 func CreateUserAndAddedToeken(PASETOPRIVATEKEYENV string, mongoconn *mongo.Database, collection string, userdata User) interface{} {
-	// Hash the Email before storing it
-    hashedEmail := HashEmail(userdata.Email)
 	// Hash the password before storing it
 	hashedPassword, err := HashPassword(userdata.Password)
 	if err != nil {
 		return err
 	}
-	userdata.Email = hashedEmail
 	userdata.Password = hashedPassword
 
 	// Insert the user data into the database
@@ -316,21 +305,17 @@ func InsertOneDoc(db *mongo.Database, collection string, doc interface{}) (inser
 }
 
 func InsertUser(db *mongo.Database, collection string, userdata User) string {
-    hashedEmail := HashEmail(userdata.Email)
-    hash, _ := HashPassword(userdata.Password)
-    userdata.Email = hashedEmail
-    userdata.Password = hash
-    atdb.InsertOneDoc(db, collection, userdata)
-    return "Email : " + hashedEmail + "\nPassword : " + userdata.Password
+	hash, _ := HashPassword(userdata.Password)
+	userdata.Password = hash
+	atdb.InsertOneDoc(db, collection, userdata)
+	return "Email : "+ userdata.Email + "\nPassword : " + userdata.Password
 }
 
-func InsertAdmin(db *mongo.Database, collection string, admindata Admin) string {
-	hashedEmail := HashEmail(admindata.Email)
-    hash, _ := HashPassword(admindata.Password)
-    admindata.Email = hashedEmail
-    admindata.Password = hash
-	atdb.InsertOneDoc(db, collection, admindata)
-	return "Email : " + admindata.Email +  "\nPassword : " + admindata.Password
+func InsertAdmin(db *mongo.Database, collection string, userdata User) string {
+	hash, _ := HashPassword(userdata.Password)
+	userdata.Password = hash
+	atdb.InsertOneDoc(db, collection, userdata)
+	return "Email : " + userdata.Email +  "\nPassword : " + userdata.Password
 }
 
 //checkemail untuk kampus ulbi

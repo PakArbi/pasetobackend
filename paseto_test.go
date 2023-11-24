@@ -20,40 +20,24 @@ func TestCreateNewUserRole(t *testing.T) {
 
 func TestCreateNewAdminRole(t *testing.T) {
 	var admindata Admin
+
 	admindata.Email = "1214041@std.ulbi.ac.id"
-	admindata.Password = "sankuy"
+	admindata.Password = "admin123"
 	admindata.Role = "admin"
 	mconn := SetConnection("MONGOSTRING", "PakArbi")
 	CreateNewAdminRole(mconn, "admin", admindata)
 }
 
-// func TestCreateNewAdminRole(t *testing.T) {
-// 	var admindata Admin
-// 	admindata.Email = "faisalsidiq14@gmail.com"
-// 	admindata.Password = "sankuy"
-// 	admindata.Role = "admin"
-// 	mconn := SetConnection("MONGOSTRING", "PakArbi")
-
-// 	// // Validate email format
-// 	// if !CheckEmailFormat(admindata.Email) {
-// 	// 	t.Error("Invalid email format")
-// 	// }
-
-// 	// Testing CreateNewAdminRole function
-// 	result := CreateNewAdminRole(mconn, "admin", admindata)
-
-// 	// Verify the functionality of CreateNewAdminRole
-// 	success, ok := result.(bool)
-// 	if !ok || !success {
-// 		t.Error("Failed to create a new admin role")
-// 	}
-
-// 	// Optionally, add assertions or checks here to validate the created user role in the database.
+// func TestDeleteUser(t *testing.T) {
+// 	mconn := SetConnection("MONGOSTRING", "pasabar13")
+// 	var userdata User
+// 	userdata.Email = "lolz"
+// 	DeleteUser(mconn, "user", userdata)
 // }
 
 func CreateNewUserToken(t *testing.T) {
 	var userdata User
-	userdata.Email = "faisalsidiq14@gmail.com"
+	userdata.Email = "faisalsidiq@gmail.com"
 	userdata.Password = "sankuy"
 	userdata.Role = "user"
 
@@ -68,28 +52,27 @@ func CreateNewUserToken(t *testing.T) {
 	}
 }
 
-
 func CreateNewAdminToken(t *testing.T) {
-	var admindata Admin
-	admindata.Email = "12114041@std.ulbi.ac.id"
+	var admindata User
+	admindata.Email = "1214041@std.ulbi.ac.id"
 	admindata.Password = "admin123"
-	admindata.Role = "admin"
+	admindata.Role = "user"
 
 	// Create a MongoDB connection
 	mconn := SetConnection("MONGOSTRING", "PakArbi")
 
 	// Call the function to create a user and generate a token
-	err := CreateAdminAndAddToken("your_private_key_env", mconn, "admin", admindata)
+	err := CreateUserAndAddToken("your_private_key_env", mconn, "admin", admindata)
 
 	if err != nil {
-		t.Errorf("Error creating user and token: %v", err)
+		t.Errorf("Error creating admin and token: %v", err)
 	}
 }
 
 func TestGFCPostHandlerUser(t *testing.T) {
 	mconn := SetConnection("MONGOSTRING", "PakArbi")
 	var userdata User
-	userdata.Email = "faisalsidiq14@gmail.com"
+	userdata.Email = "faisal"
 	userdata.Password = "sankuy"
 	userdata.Role = "user"
 	CreateNewUserRole(mconn, "user", userdata)
@@ -105,16 +88,6 @@ func TestGeneratePasswordHash(t *testing.T) {
 	fmt.Println("Match:   ", match)
 }
 
-// func TestGenerateAdminEmailHash(t *testing.T) {
-// 	email := "faisalsidiq14@gmail.com"
-// 	hash := HashEmail(email) // ignore error for the sake of simplicity
-
-// 	fmt.Println("Email:", email)
-// 	fmt.Println("Hash:    ", hash)
-// 	match := CheckEmailHash(email, hash)
-// 	fmt.Println("Match:   ", match)
-// }
-
 func TestGenerateAdminPasswordHash(t *testing.T) {
 	password := "admin123"
 	hash, _ := HashPassword(password) // ignore error for the sake of simplicity
@@ -124,16 +97,6 @@ func TestGenerateAdminPasswordHash(t *testing.T) {
 	match := CheckPasswordHash(password, hash)
 	fmt.Println("Match:   ", match)
 }
-
-// func TestGenerateAdminEmailHash(t *testing.T) {
-// 	email := "1214041@std.ulbi.ac.id"
-// 	hash := HashEmail(email) // ignore error for the sake of simplicity
-
-// 	fmt.Println("Email:", email)
-// 	fmt.Println("Hash:    ", hash)
-// 	match := CheckEmailHash(email, hash)
-// 	fmt.Println("Match:   ", match)
-// }
 
 func TestGeneratePrivateKeyPaseto(t *testing.T) {
 	privateKey, publicKey := watoken.GenerateKey()
@@ -173,18 +136,14 @@ func TestHashAdminFunction(t *testing.T) {
     admindata.Email = "admin@gmail.com"
     admindata.Password = "admin123"
 
-    filterEmail := bson.M{"email": admindata.Email}
+	filter := bson.M{"email": admindata.Email}
+    res := atdb.GetOneDoc[User](mconn, "admin", filter)
+	fmt.Println("Mongo User Result: ", res)
+	hash, _ := HashPassword(admindata.Password)
+	fmt.Println("Hash Password : ", hash)
+	match := CheckPasswordHash(admindata.Password, res.Password)
+	fmt.Println("Match:   ", match)
 
-    resByEmail := atdb.GetOneDoc[User](mconn, "admin", filterEmail)
-
-    fmt.Println("Mongo User Result (by email): ", resByEmail)
-
-    hash, _ := HashPassword(admindata.Password)
-    fmt.Println("Hash Password : ", hash)
-
-    matchByEmail := CheckPasswordHash(admindata.Password, resByEmail.Password)
-
-    fmt.Println("Match (by email):   ", matchByEmail)
 }
 
 
@@ -209,20 +168,20 @@ func TestUserFix(t *testing.T) {
 
 func TestIsAdminPasswordValid(t *testing.T) {
 	mconn := SetConnection("MONGOSTRING", "PakArbi")
-	var admindata Admin
-	admindata.Email = "1214041@std.ulbi.ac.id"
+	var admindata User
+	admindata.Email = "11214041@std.ulbi.ac.id"
 	admindata.Password = "admin123"
 
-	anu := IsPasswordValidAdmin(mconn, "admin", admindata)
+	anu := IsPasswordValid(mconn, "user", admindata)
 	fmt.Println(anu)
 }
 
 func TestAdminFix(t *testing.T) {
 	mconn := SetConnection("MONGOSTRING", "PakArbi")
-	var admindata Admin
-	admindata.Email = "1214041@std.ulbi.ac.id"
+	var admindata User
+	admindata.Email = "11214041@std.ulbi.ac.id"
 	admindata.Password = "admin123"
 	admindata.Role = "admin"
-	CreateAdmin(mconn, "admin", admindata)
+	CreateUser(mconn, "user", admindata)
 }
 

@@ -2,8 +2,6 @@ package pasetobackend
 
 import (
 	"golang.org/x/crypto/bcrypt"
-	"crypto/sha256"
-    "encoding/hex"
 )
 
 func HashPassword(password string) (string, error) {
@@ -11,23 +9,10 @@ func HashPassword(password string) (string, error) {
 	return string(bytes), err
 }
 
-func HashEmail(email string) string {
-    hasher := sha256.New()
-    hasher.Write([]byte(email))
-    hashedEmail := hasher.Sum(nil)
-    return hex.EncodeToString(hashedEmail)
-}
-
 func CheckPasswordHash(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
 }
-
-func CheckEmailHash(email, hash string) bool {
-    hashedEmail := HashEmail(email)
-    return hashedEmail == hash
-}
-
 
 func CreateResponse(status bool, message string, data interface{}) Response {
 	response := Response{
