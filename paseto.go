@@ -85,7 +85,7 @@ func GCFFindUserByName(MONGOCONNSTRINGENV, dbname, collectionname string, r *htt
 	}
 
 	// Jika email kosong, maka respon "false" dan data tidak ada
-	if datauser.Username == "" {
+	if datauser.Email == "" {
 		return "false"
 	}
 
@@ -351,7 +351,7 @@ func GCFPostHandler(PASETOPRIVATEKEYENV, MONGOCONNSTRINGENV, dbname, collectionn
 	} else {
 		if IsPasswordValid(mconn, collectionname, datauser) {
 			Response.Status = true
-			tokenstring, err := watoken.Encode(datauser.Username, os.Getenv(PASETOPRIVATEKEYENV))
+			tokenstring, err := watoken.Encode(datauser.Email, os.Getenv(PASETOPRIVATEKEYENV))
 			if err != nil {
 				Response.Message = "Gagal Encode Token : " + err.Error()
 			} else {
@@ -403,7 +403,7 @@ func Login(Privatekey, MongoEnv, dbname, Colname string, r *http.Request) string
 		resp.Message = "error parsing application/json: " + err.Error()
 	} else {
 		if IsPasswordValid(mconn, Colname, datauser) {
-			tokenstring, err := watoken.Encode(datauser.Username, os.Getenv(Privatekey))
+			tokenstring, err := watoken.Encode(datauser.Email, os.Getenv(Privatekey))
 			if err != nil {
 				resp.Message = "Gagal Encode Token : " + err.Error()
 			} else {

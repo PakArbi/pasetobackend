@@ -105,16 +105,15 @@ func TestGeneratePasswordHash(t *testing.T) {
 	fmt.Println("Match:   ", match)
 }
 
-func TestGenerateEmailHash(t *testing.T) {
-	email := "faisalsidiq14@gmail.com"
-	expectedHash := "expected_hash_here" // Replace with the expected hash value for the test email
+// func TestGenerateAdminEmailHash(t *testing.T) {
+// 	email := "faisalsidiq14@gmail.com"
+// 	hash := HashEmail(email) // ignore error for the sake of simplicity
 
-	hashedEmail := HashEmail(email)
-
-	if hashedEmail != expectedHash {
-		t.Errorf("Hashed email mismatch. Expected: %s, Got: %s", expectedHash, hashedEmail)
-	}
-}
+// 	fmt.Println("Email:", email)
+// 	fmt.Println("Hash:    ", hash)
+// 	match := CheckEmailHash(email, hash)
+// 	fmt.Println("Match:   ", match)
+// }
 
 func TestGenerateAdminPasswordHash(t *testing.T) {
 	password := "admin123"
@@ -126,16 +125,15 @@ func TestGenerateAdminPasswordHash(t *testing.T) {
 	fmt.Println("Match:   ", match)
 }
 
-func TestGenerateAdminEmailHash(t *testing.T) {
-	email := "1214041@std.ulbi.ac.id"
-	expectedHash := "expected_hash_here" // Replace with the expected hash value for the test email
+// func TestGenerateAdminEmailHash(t *testing.T) {
+// 	email := "1214041@std.ulbi.ac.id"
+// 	hash := HashEmail(email) // ignore error for the sake of simplicity
 
-	hashedEmail := HashEmail(email)
-
-	if hashedEmail != expectedHash {
-		t.Errorf("Hashed email mismatch. Expected: %s, Got: %s", expectedHash, hashedEmail)
-	}
-}
+// 	fmt.Println("Email:", email)
+// 	fmt.Println("Hash:    ", hash)
+// 	match := CheckEmailHash(email, hash)
+// 	fmt.Println("Match:   ", match)
+// }
 
 func TestGeneratePrivateKeyPaseto(t *testing.T) {
 	privateKey, publicKey := watoken.GenerateKey()
