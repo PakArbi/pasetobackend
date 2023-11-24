@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"errors"
+	"regexp"
+	// "crypto/sha256"
+    // "encoding/hex"
 	
 
 	"github.com/aiteung/atdb"
@@ -70,12 +72,12 @@ func CreateAdmin(mongoconn *mongo.Database, collection string, admindata Admin) 
 		fmt.Println(err)
 	}
 	fmt.Println(tokenstring)
-	// decode token to get adminid
-	useridstring := watoken.DecodeGetId(publicKey, tokenstring)
-	if useridstring == "" {
+	// decode token to get userid
+	adminidstring := watoken.DecodeGetId(publicKey, tokenstring)
+	if adminidstring == "" {
 		fmt.Println("expire token")
 	}
-	fmt.Println(useridstring)
+	fmt.Println(adminidstring)
 	admindata.Private = privateKey
 	admindata.Public = publicKey
 	admindata.Password = hashedPassword
@@ -89,13 +91,43 @@ func GetNameAndPassowrd(mongoconn *mongo.Database, collection string) []User {
 	return user
 }
 
+func GetEmailAndPassword(mongoconn *mongo.Database, collection string) []User {
+    users := atdb.GetAllDoc[[]User](mongoconn, collection)
+    validEmailUsers := make([]User, 0)
+
+    for _, user := range users {
+        if CheckEmailFormat(user.Email) {
+            validEmailUsers = append(validEmailUsers, user)
+        }
+    }
+    return validEmailUsers
+}
+
+func GetEmailAndPasswordAdmin(mongoconn *mongo.Database, collection string) []Admin {
+    admins := atdb.GetAllDoc[[]Admin](mongoconn, collection)
+    validEmailAdmin := make([]Admin, 0)
+
+    for _, admin := range admins {
+        if CheckEmailFormat(admin.Email) {
+            validEmailAdmin = append(validEmailAdmin, admin)
+        }
+    }
+    return validEmailAdmin
+}
+
 
 func CreateNewUserRole(mongoconn *mongo.Database, collection string, userdata User) interface{} {
+	//Hash the Email before storing it
+	// Hash the Email before storing it
+    hashedEmail := HashEmail(userdata.Email)
+	
 	// Hash the password before storing it
 	hashedPassword, err := HashPassword(userdata.Password)
 	if err != nil {
 		return err
 	}
+
+	userdata.Email = hashedEmail
 	userdata.Password = hashedPassword
 
 	// Insert the user data into the database
@@ -114,12 +146,15 @@ func CreateNewAdminRole(mongoconn *mongo.Database, collection string, admindata 
 	return atdb.InsertOneDoc(mongoconn, collection, admindata)
 }
 
-func CreateUserAndAddedToken(PASETOPRIVATEKEYENV string, mongoconn *mongo.Database, collection string, userdata User) interface{} {
+func CreateUserAndAddedToeken(PASETOPRIVATEKEYENV string, mongoconn *mongo.Database, collection string, userdata User) interface{} {
+	// Hash the Email before storing it
+    hashedEmail := HashEmail(userdata.Email)
 	// Hash the password before storing it
 	hashedPassword, err := HashPassword(userdata.Password)
 	if err != nil {
 		return err
 	}
+	userdata.Email = hashedEmail
 	userdata.Password = hashedPassword
 
 	// Insert the user data into the database
@@ -137,11 +172,6 @@ func CreateUserAndAddedToken(PASETOPRIVATEKEYENV string, mongoconn *mongo.Databa
 }
 
 func CreateAdminAndAddedToken(PASETOPRIVATEKEYENV string, mongoconn *mongo.Database, collection string, admindata Admin) interface{} {
-	// Validate the email format
-	if !CheckEmailFormat(admindata.Email) {
-		return errors.New("Invalid email format")
-	}
-
 	// Hash the password before storing it
 	hashedPassword, err := HashPassword(admindata.Password)
 	if err != nil {
@@ -164,12 +194,7 @@ func CreateAdminAndAddedToken(PASETOPRIVATEKEYENV string, mongoconn *mongo.Datab
 }
 
 func DeleteUser(mongoconn *mongo.Database, collection string, userdata User) interface{} {
-	filter := bson.M{"username": userdata.Email}
-	return atdb.DeleteOneDoc(mongoconn, collection, filter)
-}
-
-func DeleteAdmin(mongoconn *mongo.Database, collection string, admindata Admin) interface{} {
-	filter := bson.M{"email": admindata.Email}
+	filter := bson.M{"email": userdata.Email}
 	return atdb.DeleteOneDoc(mongoconn, collection, filter)
 }
 
@@ -181,11 +206,18 @@ func ReplaceOneDocAdmin(mongoconn *mongo.Database, collection string, filter bso
 	return atdb.ReplaceOneDoc(mongoconn, collection, filter, admindata)
 }
 
-func FindUser(mongoconn *mongo.Database, collection string, key, value string) User {
-	filter := bson.M{"$or": []bson.M{
-		{key: value},
-	}}
+func FindUser(mongoconn *mongo.Database, collection string, userdata User) User {
+	filter := bson.M{"email": userdata.Email}
+	return atdb.GetOneDoc[User](mongoconn, collection, filter)
+}
 
+func FindAdmin(mongoconn *mongo.Database, collection string, admindata Admin) Admin {
+	filter := bson.M{"email": admindata.Email}
+	return atdb.GetOneDoc[Admin](mongoconn, collection, filter)
+}
+
+func FindUserByEmail(mongoconn *mongo.Database, collection string, email string) User {
+	filter := bson.M{"email": email}
 	return atdb.GetOneDoc[User](mongoconn, collection, filter)
 }
 
@@ -215,7 +247,7 @@ func CreateUserAndAddToken(privateKeyEnv string, mongoconn *mongo.Database, coll
 	userdata.Password = hashedPassword
 
 	// Create a token for the user
-	tokenstring, err := watoken.Encode(userdata.Username, os.Getenv(privateKeyEnv))
+	tokenstring, err := watoken.Encode(userdata.Email, os.Getenv(privateKeyEnv))
 	if err != nil {
 		return err
 	}
@@ -223,7 +255,7 @@ func CreateUserAndAddToken(privateKeyEnv string, mongoconn *mongo.Database, coll
 	userdata.Token = tokenstring
 
 	// Insert the user data into the MongoDB collection
-	if err := atdb.InsertOneDoc(mongoconn, collection, userdata.Username); err != nil {
+	if err := atdb.InsertOneDoc(mongoconn, collection, userdata.Email); err != nil {
 		return nil // Mengembalikan kesalahan yang dikembalikan oleh atdb.InsertOneDoc
 	}
 
@@ -231,22 +263,48 @@ func CreateUserAndAddToken(privateKeyEnv string, mongoconn *mongo.Database, coll
 	return nil
 }
 
-func InsertUserdata(MongoConn *mongo.Database, username, email, role, password string) (InsertedID interface{}) {
+//Admin
+func CreateAdminAndAddToken(privateKeyEnv string, mongoconn *mongo.Database, collection string, admindata Admin) error {
+	// Hash the password before storing it
+	hashedPassword, err := HashPassword(admindata.Password)
+	if err != nil {
+		return err
+	}
+	admindata.Password = hashedPassword
+
+	// Create a token for the user
+	tokenstring, err := watoken.Encode(admindata.Email, os.Getenv(privateKeyEnv))
+	if err != nil {
+		return err
+	}
+
+	admindata.Token = tokenstring
+
+	// Insert the user data into the MongoDB collection
+	if err := atdb.InsertOneDoc(mongoconn, collection, admindata.Email); err != nil {
+		return nil // Mengembalikan kesalahan yang dikembalikan oleh atdb.InsertOneDoc
+	}
+
+	// Return nil to indicate success
+	return nil
+}
+
+func InsertUserdata(MongoConn *mongo.Database, email, role, password string) (InsertedID interface{}) {
 	req := new(User)
-	req.Username = username
+	// req.Username = username
 	req.Email = email
 	req.Password = password
 	req.Role = role
 	return InsertOneDoc(MongoConn, "user", req)
 }
 
-func InsertAdmindata(MongoConn *mongo.Database, username, email, role, password string) (InsertedID interface{}) {
+func InsertAdmindata(MongoConn *mongo.Database, email, role, password string) (InsertedID interface{}) {
 	req := new(Admin)
-	req.Username = username
+	// req.Username = username
 	req.Email = email
 	req.Password = password
 	req.Role = role
-	return InsertOneDoc(MongoConn, "user", req)
+	return InsertOneDoc(MongoConn, "admin", req)
 }
 
 func InsertOneDoc(db *mongo.Database, collection string, doc interface{}) (insertedID interface{}) {
@@ -258,15 +316,27 @@ func InsertOneDoc(db *mongo.Database, collection string, doc interface{}) (inser
 }
 
 func InsertUser(db *mongo.Database, collection string, userdata User) string {
-	hash, _ := HashPassword(userdata.Password)
-	userdata.Password = hash
-	atdb.InsertOneDoc(db, collection, userdata)
-	return "Username/Email : " + userdata.Username + "/" + userdata.Email + "\nPassword : " + userdata.Password
+    hashedEmail := HashEmail(userdata.Email)
+    hash, _ := HashPassword(userdata.Password)
+    userdata.Email = hashedEmail
+    userdata.Password = hash
+    atdb.InsertOneDoc(db, collection, userdata)
+    return "Email : " + hashedEmail + "\nPassword : " + userdata.Password
 }
 
-func InsertAdmin(db *mongo.Database, collection string, userdata User) string {
-	hash, _ := HashPassword(userdata.Password)
-	userdata.Password = hash
-	atdb.InsertOneDoc(db, collection, userdata)
-	return "Email : " + userdata.Email +  "\nPassword : " + userdata.Password
+func InsertAdmin(db *mongo.Database, collection string, admindata Admin) string {
+	hashedEmail := HashEmail(admindata.Email)
+    hash, _ := HashPassword(admindata.Password)
+    admindata.Email = hashedEmail
+    admindata.Password = hash
+	atdb.InsertOneDoc(db, collection, admindata)
+	return "Email : " + admindata.Email +  "\nPassword : " + admindata.Password
+}
+
+//checkemail untuk kampus ulbi
+func CheckEmailFormat(email string) bool {
+	// Regular expression pattern for email validation including npm@std.ulbi.ac.id format
+	emailRegexPattern := `^[a-zA-Z0-9._%+-]+@std\.ulbi\.ac\.id$`
+	match, _ := regexp.MatchString(emailRegexPattern, email)
+	return match
 }

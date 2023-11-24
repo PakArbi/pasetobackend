@@ -21,11 +21,35 @@ func TestCreateNewUserRole(t *testing.T) {
 func TestCreateNewAdminRole(t *testing.T) {
 	var admindata Admin
 	admindata.Email = "1214041@std.ulbi.ac.id"
-	admindata.Password = "admin123"
+	admindata.Password = "sankuy"
 	admindata.Role = "admin"
 	mconn := SetConnection("MONGOSTRING", "PakArbi")
 	CreateNewAdminRole(mconn, "admin", admindata)
 }
+
+// func TestCreateNewAdminRole(t *testing.T) {
+// 	var admindata Admin
+// 	admindata.Email = "faisalsidiq14@gmail.com"
+// 	admindata.Password = "sankuy"
+// 	admindata.Role = "admin"
+// 	mconn := SetConnection("MONGOSTRING", "PakArbi")
+
+// 	// // Validate email format
+// 	// if !CheckEmailFormat(admindata.Email) {
+// 	// 	t.Error("Invalid email format")
+// 	// }
+
+// 	// Testing CreateNewAdminRole function
+// 	result := CreateNewAdminRole(mconn, "admin", admindata)
+
+// 	// Verify the functionality of CreateNewAdminRole
+// 	success, ok := result.(bool)
+// 	if !ok || !success {
+// 		t.Error("Failed to create a new admin role")
+// 	}
+
+// 	// Optionally, add assertions or checks here to validate the created user role in the database.
+// }
 
 func CreateNewUserToken(t *testing.T) {
 	var userdata User
@@ -44,17 +68,18 @@ func CreateNewUserToken(t *testing.T) {
 	}
 }
 
+
 func CreateNewAdminToken(t *testing.T) {
-	var userdata User
-	userdata.Email = "12114041@std.ulbi.ac.id"
-	userdata.Password = "admin123"
-	userdata.Role = "admin"
+	var admindata Admin
+	admindata.Email = "12114041@std.ulbi.ac.id"
+	admindata.Password = "admin123"
+	admindata.Role = "admin"
 
 	// Create a MongoDB connection
 	mconn := SetConnection("MONGOSTRING", "PakArbi")
 
 	// Call the function to create a user and generate a token
-	err := CreateUserAndAddToken("your_private_key_env", mconn, "admin", userdata)
+	err := CreateAdminAndAddToken("your_private_key_env", mconn, "admin", admindata)
 
 	if err != nil {
 		t.Errorf("Error creating user and token: %v", err)
@@ -80,6 +105,17 @@ func TestGeneratePasswordHash(t *testing.T) {
 	fmt.Println("Match:   ", match)
 }
 
+func TestGenerateEmailHash(t *testing.T) {
+	email := "faisalsidiq14@gmail.com"
+	expectedHash := "expected_hash_here" // Replace with the expected hash value for the test email
+
+	hashedEmail := HashEmail(email)
+
+	if hashedEmail != expectedHash {
+		t.Errorf("Hashed email mismatch. Expected: %s, Got: %s", expectedHash, hashedEmail)
+	}
+}
+
 func TestGenerateAdminPasswordHash(t *testing.T) {
 	password := "admin123"
 	hash, _ := HashPassword(password) // ignore error for the sake of simplicity
@@ -88,6 +124,17 @@ func TestGenerateAdminPasswordHash(t *testing.T) {
 	fmt.Println("Hash:    ", hash)
 	match := CheckPasswordHash(password, hash)
 	fmt.Println("Match:   ", match)
+}
+
+func TestGenerateAdminEmailHash(t *testing.T) {
+	email := "1214041@std.ulbi.ac.id"
+	expectedHash := "expected_hash_here" // Replace with the expected hash value for the test email
+
+	hashedEmail := HashEmail(email)
+
+	if hashedEmail != expectedHash {
+		t.Errorf("Hashed email mismatch. Expected: %s, Got: %s", expectedHash, hashedEmail)
+	}
 }
 
 func TestGeneratePrivateKeyPaseto(t *testing.T) {

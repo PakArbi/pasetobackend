@@ -22,45 +22,9 @@ func GCFFindUserByID(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.
 	if err != nil {
 		return err.Error()
 	}
-
-	// Decide whether to search by email or username based on the provided data
-	var key string
-	if datauser.Email != "" {
-		key = "email"
-	} else if datauser.Username != "" {
-		key = "npm"
-	} else {
-		return "Invalid input: neither email nor npm provided"
-	}
-
-	user := FindUser(mconn, collectionname, key, datauser.Email)
+	user := FindUser(mconn, collectionname, datauser)
 	return GCFReturnStruct(user)
 }
-
-// func GCFFindUserByName(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
-// 	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
-// 	var datauser User
-// 	err := json.NewDecoder(r.Body).Decode(&datauser)
-// 	if err != nil {
-// 		return err.Error()
-// 	}
-
-// 	// Jika username kosong, maka respon "false" dan data tidak ada
-// 	if datauser.Username == "" {
-// 		return "false"
-// 	}
-
-// 	// Jika ada username, mencari data pengguna
-// 	user := FindUser(mconn, collectionname, datauser)
-
-// 	// Jika data pengguna ditemukan, mengembalikan data pengguna dalam format yang sesuai
-// 	if user != (User{}) {
-// 		return GCFReturnStruct(user)
-// 	}
-
-// 	// Jika tidak ada data pengguna yang ditemukan, mengembalikan "false" dan data tidak ada
-// 	return "false"
-// }
 
 func GCFFindAdminByEmail(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
 	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
@@ -85,8 +49,57 @@ func GCFFindAdminByEmail(MONGOCONNSTRINGENV, dbname, collectionname string, r *h
 
 	// Jika tidak ada data admin yang ditemukan, mengembalikan "false" dan data tidak ada
 	return "false"
+} 
+
+func GCFFindUserByEmail(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	var datauser User
+	err := json.NewDecoder(r.Body).Decode(&datauser)
+	if err != nil {
+		return err.Error()
+	}
+
+	// Jika email kosong, maka respon "false" dan data tidak ada
+	if datauser.Email == "" {
+		return "false"
+	}
+
+	// Jika ada email, mencari data admin
+	user := FindUserByEmail(mconn, collectionname, datauser.Email)
+
+	// Jika data admin ditemukan, mengembalikan data admin dalam format yang sesuai
+	if user != (User{}) {
+		return GCFReturnStruct(user)
+	}
+
+	// Jika tidak ada data admin yang ditemukan, mengembalikan "false" dan data tidak ada
+	return "false"
 }
 
+func GCFFindUserByName(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	var datauser User
+	err := json.NewDecoder(r.Body).Decode(&datauser)
+	if err != nil {
+		return err.Error()
+	}
+
+	// Jika email kosong, maka respon "false" dan data tidak ada
+	if datauser.Username == "" {
+		return "false"
+	}
+
+	// Jika ada email, mencari data pengguna
+	user := FindUser(mconn, collectionname, datauser)
+
+	// Jika data pengguna ditemukan, mengembalikan data pengguna dalam format yang sesuai
+	if user != (User{}) {
+		return GCFReturnStruct(user)
+	}
+
+	// Jika tidak ada data pengguna yang ditemukan, mengembalikan "false" dan data tidak ada
+	return "false"
+}
 
 func GCFDeleteHandler(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
 	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
@@ -99,71 +112,15 @@ func GCFDeleteHandler(MONGOCONNSTRINGENV, dbname, collectionname string, r *http
 	return GCFReturnStruct(datauser)
 }
 
-func GCFDeleteHandlerAdmin(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
+func GCFUpdateHandler(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
 	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
-	var dataadmin Admin
-	err := json.NewDecoder(r.Body).Decode(&dataadmin)
+	var datauser User
+	err := json.NewDecoder(r.Body).Decode(&datauser)
 	if err != nil {
 		return err.Error()
 	}
-	DeleteAdmin(mconn, collectionname, dataadmin)
-	return GCFReturnStructAdmin(dataadmin)
-}
-
-func GCFUpdateHandler(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
-    mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
-    var datauser User
-    err := json.NewDecoder(r.Body).Decode(&datauser)
-    if err != nil {
-        return err.Error()
-    }
-
-    var filterKey string
-    var filterValue string
-
-    // Decide whether to update by email or npm based on the provided data
-    if datauser.Email != "" {
-        filterKey = "email"
-        filterValue = datauser.Email
-    } else if datauser.Username != "" {
-        filterKey = "npm"
-        filterValue = datauser.Username
-    } else {
-        return "Invalid input: neither email nor npm provided"
-    }
-
-    // Update the user data in the database
-    ReplaceOneDoc(mconn, collectionname, bson.M{filterKey: filterValue}, datauser)
-
-    return GCFReturnStruct(datauser)
-}
-
-func GCFUpdateHandlerAdmin(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
-    mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
-    var datauser User
-    err := json.NewDecoder(r.Body).Decode(&datauser)
-    if err != nil {
-        return err.Error()
-    }
-
-    var filterKey string
-    var filterValue string
-
-    // Decide whether to update by email or npm based on the provided data
-    if datauser.Email != "" {
-        filterKey = "email"
-        filterValue = datauser.Email
-    } else if datauser.Username != "" {
-        filterKey = "npm"
-        filterValue = datauser.Username
-    } else {
-        return "Invalid input: neither email nor npm provided"
-    }
-
-    // Update the user data in the database
-    ReplaceOneDoc(mconn, collectionname, bson.M{filterKey: filterValue}, datauser)
-
-    return GCFReturnStruct(datauser)
+	ReplaceOneDoc(mconn, collectionname, bson.M{"email": datauser.Email}, datauser)
+	return GCFReturnStruct(datauser)
 }
 
 func GCFCreateHandler(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
@@ -187,13 +144,52 @@ func GCFCreateHandler(MONGOCONNSTRINGENV, dbname, collectionname string, r *http
 	return GCFReturnStruct(datauser)
 }
 
-func GCFRegisterUser(email, password, role, mongoConnectionString, dbName string) bool {
-    // Check if the email format is valid
-    if !CheckEmailFormat(email) {
-        // Invalid email format
-        return false
-    }
+//Admin Handler
+func GCFDeleteHandlerAdmin(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	var dataadmin User
+	err := json.NewDecoder(r.Body).Decode(&dataadmin)
+	if err != nil {
+		return err.Error()
+	}
+	DeleteUser(mconn, collectionname, dataadmin)
+	return GCFReturnStruct(dataadmin)
+}
 
+func GCFUpdateHandlerAdmin(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	var dataadmin User
+	err := json.NewDecoder(r.Body).Decode(&dataadmin)
+	if err != nil {
+		return err.Error()
+	}
+	ReplaceOneDoc(mconn, collectionname, bson.M{"email": dataadmin.Email}, dataadmin)
+	return GCFReturnStruct(dataadmin)
+}
+
+func GCFCreateHandlerAdmin(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	var dataadmin Admin
+	err := json.NewDecoder(r.Body).Decode(&dataadmin)
+	if err != nil {
+		return err.Error()
+	}
+
+	// Hash the password before storing it
+	hashedPassword, hashErr := HashPassword(dataadmin.Password)
+	if hashErr != nil {
+		return hashErr.Error()
+	}
+	dataadmin.Password = hashedPassword
+
+	createErr := CreateNewAdminRole(mconn, collectionname, dataadmin)
+	fmt.Println(createErr)
+
+	return GCFReturnStruct(dataadmin)
+}
+//end Admin Handler
+
+func GCFRegisterUser(email, password, role, mongoConnectionString, dbName string) bool {
     // Menghubungkan ke database MongoDB
     client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(mongoConnectionString))
     if err != nil {
@@ -222,7 +218,7 @@ func GCFRegisterUser(email, password, role, mongoConnectionString, dbName string
 
     // Data pengguna baru
     newUser := User{
-        Email:    email,
+        Email: email,
         Password: string(hashedPassword),
         Role:     role,
     }
@@ -238,14 +234,7 @@ func GCFRegisterUser(email, password, role, mongoConnectionString, dbName string
     return true
 }
 
-
 func GCFRegisterAdmin(email, password, role, mongoConnectionString, dbName string) bool {
-    // Check if the email format is valid
-    if !CheckEmailFormat(email) {
-        // Invalid email format
-        return false
-    }
-
     // Menghubungkan ke database MongoDB
     client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(mongoConnectionString))
     if err != nil {
@@ -255,12 +244,12 @@ func GCFRegisterAdmin(email, password, role, mongoConnectionString, dbName strin
     defer client.Disconnect(context.TODO())
 
     // Memilih koleksi (tabel) yang sesuai
-    collection := client.Database(dbName).Collection("admins")
+    collection := client.Database(dbName).Collection("admin")
 
     // Cek apakah pengguna dengan email tersebut sudah terdaftar
-    existingUserFilter := bson.M{"email": email}
-    existingUser := collection.FindOne(context.Background(), existingUserFilter)
-    if existingUser.Err() == nil {
+    existingAdminFilter := bson.M{"email": email}
+    existingAdmin := collection.FindOne(context.Background(), existingAdminFilter)
+    if existingAdmin.Err() == nil {
         // Pengguna dengan email tersebut sudah terdaftar
         return false
     }
@@ -274,7 +263,7 @@ func GCFRegisterAdmin(email, password, role, mongoConnectionString, dbName strin
 
     // Data pengguna baru
     newAdmin := Admin{
-        Email:    email,
+        Email: email,
         Password: string(hashedPassword),
         Role:     role,
     }
@@ -289,7 +278,6 @@ func GCFRegisterAdmin(email, password, role, mongoConnectionString, dbName strin
     // Registrasi pengguna berhasil
     return true
 }
-
 // Sesuaikan dengan kebutuhan dan struktur data yang Anda miliki. Pastikan atribut Role telah ditambahkan di struktur
 
 
@@ -322,6 +310,7 @@ func GFCPostHandlerUser(MONGOCONNSTRINGENV, dbname, collectionname string, r *ht
 	return string(responseJSON)
 }
 
+//AdminPost
 func GFCPostHandlerAdmin(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
 	var Response Credential
 	Response.Status = false
@@ -401,44 +390,6 @@ func GCFLoginTest(email, password, MONGOCONNSTRINGENV, dbname, collectionname st
 		return false
 	}
 
-	// Validasi apakah email sesuai dengan format yang diinginkan
-	if !CheckEmailFormat(res.Email) {
-		return false
-	}
-
-	// Memeriksa apakah pengguna ditemukan dalam database
-	if res == (User{}) {
-		return false
-	}
-
-	// Memeriksa apakah kata sandi cocok
-	return CheckPasswordHash(password, res.Password)
-}
-
-func GCFLoginTestAdmin(email, password, MONGOCONNSTRINGENV, dbname, collectionname string) bool {
-	// Membuat koneksi ke MongoDB
-	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
-
-	// Mencari data pengguna berdasarkan email
-	filter := bson.M{"email": email}
-	collection := collectionname
-	res := atdb.GetOneDoc[Admin](mconn, collection, filter)
-
-	// Memeriksa apakah pengguna ditemukan dalam database
-	if res == (Admin{}) {
-		return false
-	}
-
-	// Validasi apakah email sesuai dengan format yang diinginkan
-	if !CheckEmailFormat(res.Email) {
-		return false
-	}
-
-	// Memeriksa apakah pengguna ditemukan dalam database
-	if res == (Admin{}) {
-		return false
-	}
-
 	// Memeriksa apakah kata sandi cocok
 	return CheckPasswordHash(password, res.Password)
 }
@@ -467,31 +418,12 @@ func Login(Privatekey, MongoEnv, dbname, Colname string, r *http.Request) string
 	return GCFReturnStruct(resp)
 }
 
-func LoginAdmin(Privatekey, MongoEnv, dbname, Colname string, r *http.Request) string {
-	var resp Credential
-	mconn := SetConnection(MongoEnv, dbname)
-	var dataadmin Admin
-	err := json.NewDecoder(r.Body).Decode(&dataadmin)
-	if err != nil {
-		resp.Message = "error parsing application/json: " + err.Error()
-	} else {
-		if IsPasswordValidAdmin(mconn, Colname, dataadmin) {
-			tokenstring, err := watoken.Encode(dataadmin.Email, os.Getenv(Privatekey))
-			if err != nil {
-				resp.Message = "Gagal Encode Token : " + err.Error()
-			} else {
-				resp.Status = true
-				resp.Message = "Selamat Datang"
-				resp.Token = tokenstring
-			}
-		} else {
-			resp.Message = "Password Salah"
-		}
-	}
-	return GCFReturnStruct(resp)
+func ReturnStringStruct(Data any) string {
+	jsonee, _ := json.Marshal(Data)
+	return string(jsonee)
 }
 
-func ReturnStringStruct(Data any) string {
+func ReturnStringStructAdmin(Data any) string {
 	jsonee, _ := json.Marshal(Data)
 	return string(jsonee)
 }
@@ -510,7 +442,7 @@ func RegisterUser(Mongoenv, dbname string, r *http.Request) string {
 		if err != nil {
 			resp.Message = "Gagal Hash Password" + err.Error()
 		}
-		InsertUserdata(conn, userdata.Username, userdata.Email, userdata.Role, hash)
+		InsertUserdata(conn, userdata.Email, userdata.Role, hash)
 		resp.Message = "Berhasil Input data"
 	}
 	response := ReturnStringStruct(resp)
@@ -531,7 +463,7 @@ func RegisterAdmin(Mongoenv, dbname string, r *http.Request) string {
 		if err != nil {
 			resp.Message = "Gagal Hash Password" + err.Error()
 		}
-		InsertUserdata(conn, admindata.Username, admindata.Email, admindata.Role, hash)
+		InsertAdmindata(conn, admindata.Email, admindata.Role, hash)
 		resp.Message = "Berhasil Input data"
 	}
 	response := ReturnStringStruct(resp)
