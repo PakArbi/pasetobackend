@@ -63,7 +63,7 @@ func TestUserFix(t *testing.T) {
 	userdata.NPM = "1214000"
 	userdata.Password = "pakarbipass"
 	userdata.PasswordHash = "pakarbipass"
-	userdata.Email = "pakarbi2023@gmail.com"
+	userdata.Email = "1214000@std.ulbi.ac.id"
 	userdata.Role = "user"
 	CreateUser(mconn, "user", userdata)
 }
