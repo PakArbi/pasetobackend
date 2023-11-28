@@ -91,10 +91,18 @@ func GCFPostHandlerEmail(PASETOPRIVATEKEYENV, MONGOCONNSTRINGENV, dbname, collec
 	if err != nil {
 		Response.Message = "error parsing application/json: " + err.Error()
 	} else {
-		// Assuming either email or npm is provided in the request
+		// Validasi email harus menggunakan npm@std.ulbi.ac.id sesuai dengan email kampus didaftarkan sebelum melakukan login
+		validator := NewEmailValidator()
+		if !validator.IsValid(datauser.Email) {
+			Response.Message = "Email is not valid"
+			response := GCFReturnStruct(Response)
+			return response
+		}
+
+		// reguest npm or email
 		if IsPasswordValidEmail(mconn, collectionname, datauser) {
 			Response.Status = true
-			// Using NPM as identifier, you can modify this as needed
+			// Menggunakan npm identifikasi, Anda bisa modifikasi sesuai keinginan
 			tokenstring, err := watoken.Encode(datauser.Email, os.Getenv(PASETOPRIVATEKEYENV))
 			if err != nil {
 				Response.Message = "Gagal Encode Token : " + err.Error()
@@ -109,6 +117,7 @@ func GCFPostHandlerEmail(PASETOPRIVATEKEYENV, MONGOCONNSTRINGENV, dbname, collec
 
 	return GCFReturnStruct(Response)
 }
+
 
 func GCFReturnStruct(DataStuct any) string {
 	jsondata, _ := json.Marshal(DataStuct)
@@ -190,6 +199,16 @@ func RegisterAdmin(Mongoenv, dbname string, r *http.Request) string {
 		resp.Message = "error parsing application/json: " + err.Error()
 	} else {
 		resp.Status = true
+
+		// Validasi email sebelum proses pendaftaran
+		validator := NewEmailValidator()
+		if !validator.IsValid(admindata.Email) {
+			resp.Message = "Email is not valid"
+			resp.Status = false
+			response := ReturnStringStruct(resp)
+			return response
+		}
+
 		hash, err := HashPassword(admindata.PasswordHash)
 		if err != nil {
 			resp.Message = "Gagal Hash Password" + err.Error()
@@ -200,5 +219,27 @@ func RegisterAdmin(Mongoenv, dbname string, r *http.Request) string {
 	response := ReturnStringStruct(resp)
 	return response
 }
+
+// // Register Admin
+// func RegisterAdmin(Mongoenv, dbname string, r *http.Request) string {
+// 	resp := new(Credential)
+// 	admindata := new(Admin)
+// 	resp.Status = false
+// 	conn := GetConnectionMongo(Mongoenv, dbname)
+// 	err := json.NewDecoder(r.Body).Decode(&admindata)
+// 	if err != nil {
+// 		resp.Message = "error parsing application/json: " + err.Error()
+// 	} else {
+// 		resp.Status = true
+// 		hash, err := HashPassword(admindata.PasswordHash)
+// 		if err != nil {
+// 			resp.Message = "Gagal Hash Password" + err.Error()
+// 		}
+// 		InsertAdmindata(conn, admindata.Username, admindata.Password, hash, admindata.Email, admindata.Role)
+// 		resp.Message = "Berhasil Input data"
+// 	}
+// 	response := ReturnStringStruct(resp)
+// 	return response
+// }
 
 
