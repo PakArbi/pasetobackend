@@ -1,6 +1,5 @@
 package pasetobackend
 
-
 type User struct {
 	Username     string `json:"username" bson:"username"`
 	NPM          string `json:"npm" bson:"npm"`
@@ -34,4 +33,9 @@ type Response struct {
 	Status  bool        `json:"status" bson:"status"`
 	Message string      `json:"message" bson:"message"`
 	Data    interface{} `json:"data" bson:"data"`
+}
+
+// EmailValidator adalah tipe khusus untuk validasi email npm@std.ulbi.ac.id
+type EmailValidator struct {
+	regexPattern string
 }

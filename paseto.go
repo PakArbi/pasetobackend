@@ -4,10 +4,24 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
+	"regexp"
 
 	"github.com/whatsauth/watoken"
 	// "go.mongodb.org/mongo-driver/bson"
 )
+
+// NewEmailValidator membuat instance baru dari EmailValidator
+func NewEmailValidator() *EmailValidator {
+	return &EmailValidator{
+		regexPattern: `^[a-zA-Z0-9._%+-]+@std.ulbi.ac.id$`,
+	}
+}
+
+// IsValid memeriksa apakah email sesuai dengan pola npm@std.ulbi.ac.id
+func (v *EmailValidator) IsValid(email string) bool {
+	match, _ := regexp.MatchString(v.regexPattern, email)
+	return match
+}
 
 func GFCPostHandlerUser(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
 	var Response Credential
@@ -131,6 +145,8 @@ func ReturnStringStruct(Data any) string {
 	return string(jsonee)
 }
 
+// 
+
 // Register User
 func Register(Mongoenv, dbname string, r *http.Request) string {
 	resp := new(Credential)
@@ -142,6 +158,16 @@ func Register(Mongoenv, dbname string, r *http.Request) string {
 		resp.Message = "error parsing application/json: " + err.Error()
 	} else {
 		resp.Status = true
+
+		// Validasi email sebelum proses pendaftaran
+		validator := NewEmailValidator()
+		if !validator.IsValid(userdata.Email) {
+			resp.Message = "Email is not valid"
+			resp.Status = false
+			response := ReturnStringStruct(resp)
+			return response
+		}
+
 		hash, err := HashPassword(userdata.PasswordHash)
 		if err != nil {
 			resp.Message = "Gagal Hash Password" + err.Error()
@@ -174,3 +200,5 @@ func RegisterAdmin(Mongoenv, dbname string, r *http.Request) string {
 	response := ReturnStringStruct(resp)
 	return response
 }
+
+
