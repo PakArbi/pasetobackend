@@ -30,9 +30,10 @@ type Credential struct {
 }
 
 type Response struct {
-	Status  bool        `json:"status" bson:"status"`
-	Message string      `json:"message" bson:"message"`
-	Data    interface{} `json:"data" bson:"data"`
+	Status  bool   `json:"status" bson:"status"`
+	Message string `json:"message" bson:"message"`
+	Data    []User `json:"data" bson:"data"`
+	// Data    interface{} `json:"data" bson:"data"`
 }
 
 type ResponseGet struct {

@@ -15,14 +15,14 @@ func CheckPasswordHash(passwordhash, hash string) bool {
 	return err == nil
 }
 
-func CreateResponse(status bool, message string, data interface{}) Response {
-	response := Response{
-		Status:  status,
-		Message: message,
-		Data:    data,
-	}
-	return response
-}
+// func CreateResponse(status bool, message string, data interface{}) Response {
+// 	response := Response{
+// 		Status:  status,
+// 		Message: message,
+// 		Data:    data,
+// 	}
+// 	return response
+// }
 
 //check email @std.ulbi.ac.id
 func CheckEmail(email string) bool {
