@@ -118,7 +118,6 @@ func GCFPostHandlerEmail(PASETOPRIVATEKEYENV, MONGOCONNSTRINGENV, dbname, collec
 	return GCFReturnStruct(Response)
 }
 
-
 func GCFReturnStruct(DataStuct any) string {
 	jsondata, _ := json.Marshal(DataStuct)
 	return string(jsondata)
@@ -154,7 +153,7 @@ func ReturnStringStruct(Data any) string {
 	return string(jsonee)
 }
 
-// 
+//
 
 // Register User
 func Register(Mongoenv, dbname string, r *http.Request) string {
@@ -220,6 +219,31 @@ func RegisterAdmin(Mongoenv, dbname string, r *http.Request) string {
 	return response
 }
 
+// Get User
+func GetDataUserFromGCF(PublicKey, MongoEnv, dbname, colname string, r *http.Request) string {
+	req := new(Response)
+	conn := GetConnectionMongo(MongoEnv, dbname)
+	cihuy := new(ResponseGet)
+	err := json.NewDecoder(r.Body).Decode(&cihuy)
+	if err != nil {
+		req.Status = false
+		req.Message = "error parsing application/json: " + err.Error()
+	} else {
+		checktoken := watoken.DecodeGetId(os.Getenv(PublicKey), cihuy.Token)
+		compared := CompareUsername(conn, colname, checktoken)
+		if compared != true {
+			req.Status = false
+			req.Message = "Data Username tidak ada di database"
+		} else {
+			datauser := GetAllUser(conn, colname)
+			req.Status = true
+			req.Message = "data User berhasil diambil"
+			req.Data = datauser
+		}
+	}
+	return ReturnStringStruct(req)
+}
+
 // // Register Admin
 // func RegisterAdmin(Mongoenv, dbname string, r *http.Request) string {
 // 	resp := new(Credential)
@@ -241,5 +265,3 @@ func RegisterAdmin(Mongoenv, dbname string, r *http.Request) string {
 // 	response := ReturnStringStruct(resp)
 // 	return response
 // }
-
-

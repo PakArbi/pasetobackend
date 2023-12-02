@@ -220,3 +220,18 @@ func InsertSatuDoc(db *mongo.Database, collection string, doc interface{}) (inse
 	}
 	return insertResult.InsertedID
 }
+
+func GetAllUser(MongoConn *mongo.Database, colname string) []User {
+	data := atdb.GetAllDoc[[]User](MongoConn, colname)
+	return data
+}
+
+func CompareUsername(MongoConn *mongo.Database, Colname, username string) bool {
+	filter := bson.M{"username": username}
+	err := atdb.GetOneDoc[User](MongoConn, Colname, filter)
+	users := err.Username
+	if users == "" {
+		return false
+	}
+	return true
+}

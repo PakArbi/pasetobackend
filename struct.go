@@ -35,6 +35,10 @@ type Response struct {
 	Data    interface{} `json:"data" bson:"data"`
 }
 
+type ResponseGet struct {
+	Token string `json:"token,omitempty" bson:"token,omitempty"`
+}
+
 // EmailValidator adalah tipe khusus untuk validasi email npm@std.ulbi.ac.id
 type EmailValidator struct {
 	regexPattern string
