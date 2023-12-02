@@ -265,3 +265,30 @@ func GetDataUserFromGCF(PublicKey, MongoEnv, dbname, colname string, r *http.Req
 // 	response := ReturnStringStruct(resp)
 // 	return response
 // }
+
+func GetDataUserForAdmin(PublicKey, MongoEnv, dbname, colname string, r *http.Request) string {
+	req := new(Response)
+	conn := GetConnectionMongo(MongoEnv, dbname)
+	tokenlogin := r.Header.Get("Login")
+	if tokenlogin == "" {
+		req.Status = false
+		req.Message = "Header Login Not Found"
+	} else {
+		checktoken, err := DecodeGetUser(os.Getenv(PublicKey), tokenlogin)
+		if err != nil {
+			req.Status = false
+			req.Message = "tidak ada data username : " + tokenlogin
+		}
+		compared := CompareUsername(conn, colname, checktoken)
+		if compared != true {
+			req.Status = false
+			req.Message = "Data User tidak ada"
+		} else {
+			datauser := GetAllUser(conn, colname)
+			req.Status = true
+			req.Message = "data User berhasil diambil"
+			req.Data = datauser
+		}
+	}
+	return ReturnStringStruct(req)
+}
