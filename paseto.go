@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"strconv"
+	"fmt"
 
 	"github.com/whatsauth/watoken"
 	// "go.mongodb.org/mongo-driver/bson"
@@ -187,6 +189,46 @@ func Register(Mongoenv, dbname string, r *http.Request) string {
 	response := ReturnStringStruct(resp)
 	return response
 }
+
+// gcf crud
+func GCFDeleteDataUser(Mongostring, dbname, colname string, r *http.Request) string {
+    req := new(Credents)
+    resp := new(User)
+    conn := GetConnectionMongo(Mongostring, dbname)
+    err := json.NewDecoder(r.Body).Decode(&resp)
+    if err != nil {
+        req.Status = strconv.Itoa(http.StatusNotFound)
+        req.Message = "error parsing application/json: " + err.Error()
+    } else {
+        req.Status = strconv.Itoa(http.StatusOK)
+        delResult, delErr := DeleteDataUser(conn, colname, resp.NPM)
+        if delErr != nil {
+            req.Status = strconv.Itoa(http.StatusInternalServerError)
+            req.Message = "error deleting data: " + delErr.Error()
+        } else {
+            req.Message = fmt.Sprintf("Berhasil menghapus data. Jumlah data terhapus: %v", delResult.DeletedCount)
+        }
+    }
+    return ReturnStringStruct(req)
+}
+
+func GCFUpdateDataUser(Mongostring, dbname, colname string, r *http.Request) string {
+	req := new(Credents)
+	resp := new(User)
+	conn := GetConnectionMongo(Mongostring, dbname)
+	err := json.NewDecoder(r.Body).Decode(&resp)
+	if err != nil {
+		req.Status = strconv.Itoa(http.StatusNotFound)
+		req.Message = "error parsing application/json: " + err.Error()
+	} else {
+		req.Status = strconv.Itoa(http.StatusOK)
+		Ins := UpdateDataUser(conn, colname, resp.NPM, resp.Username, resp.Email, resp.Role)
+		req.Message = fmt.Sprintf("%v:%v", "Berhasil Update data", Ins)
+	}
+	return ReturnStringStruct(req)
+}
+
+
 
 // Register Admin
 func RegisterAdmin(Mongoenv, dbname string, r *http.Request) string {

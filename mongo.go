@@ -220,3 +220,37 @@ func InsertSatuDoc(db *mongo.Database, collection string, doc interface{}) (inse
 	}
 	return insertResult.InsertedID
 }
+
+
+//crud User
+
+func DeleteDataUser(MongoConn *mongo.Database, colname string, npm string) (*mongo.DeleteResult, error) {
+    filter := bson.M{"npm": npm}
+    del, err := MongoConn.Collection(colname).DeleteOne(context.TODO(), filter)
+    if err != nil {
+        return nil, err
+    }
+    return del, nil
+}
+
+func UpdateDataUser(MongoConn *mongo.Database, colname, npm, Username, Email, Role string) error {
+    // Filter berdasarkan nama
+    filter := bson.M{"npm": npm}
+
+    // Update data yang akan diubah
+    update := bson.M{
+        "$set": bson.M{
+            "username": Username,
+            "email":   Email,
+            "role":   Role,
+        },
+    }
+
+    // Mencoba untuk mengupdate dokumen
+    _, err := MongoConn.Collection(colname).UpdateOne(context.TODO(), filter, update)
+    if err != nil {
+        return err
+    }
+
+    return nil
+}
