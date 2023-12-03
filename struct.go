@@ -1,5 +1,7 @@
 package pasetobackend
 
+import "time"
+
 type User struct {
 	Username     string `json:"username" bson:"username"`
 	NPM          string `json:"npm" bson:"npm"`
@@ -36,12 +38,30 @@ type Credents struct {
 }
 
 type Response struct {
-	Status  bool        `json:"status" bson:"status"`
-	Message string      `json:"message" bson:"message"`
-	Data    interface{} `json:"data" bson:"data"`
+	Status  bool   `json:"status" bson:"status"`
+	Message string `json:"message" bson:"message"`
+	Data    []User `json:"data" bson:"data"`
+	// Data    interface{} `json:"data" bson:"data"`
+}
+
+type ResponseGet struct {
+	Token string `json:"token,omitempty" bson:"token,omitempty"`
 }
 
 // EmailValidator adalah tipe khusus untuk validasi email npm@std.ulbi.ac.id
 type EmailValidator struct {
 	regexPattern string
+}
+
+type Payload struct {
+	User string    `json:"user"`
+	Role string    `json:"role"`
+	Exp  time.Time `json:"exp"`
+	Iat  time.Time `json:"iat"`
+	Nbf  time.Time `json:"nbf"`
+}
+
+type ResponseEncode struct {
+	Message string `json:"message,omitempty" bson:"message,omitempty"`
+	Token   string `json:"token,omitempty" bson:"token,omitempty"`
 }

@@ -221,7 +221,6 @@ func InsertSatuDoc(db *mongo.Database, collection string, doc interface{}) (inse
 	return insertResult.InsertedID
 }
 
-
 //crud User
 
 func DeleteDataUser(MongoConn *mongo.Database, colname string, npm string) (*mongo.DeleteResult, error) {
@@ -254,3 +253,25 @@ func UpdateDataUser(MongoConn *mongo.Database, colname, npm, Username, Email, Ro
 
     return nil
 }
+
+func GetAllUser(MongoConn *mongo.Database, colname string) []User {
+	data := atdb.GetAllDoc[[]User](MongoConn, colname)
+	return data
+}
+
+func GetOneUser(MongoConn *mongo.Database, colname string, userdata User) User {
+	filter := bson.M{"username": userdata.Username}
+	data := atdb.GetOneDoc[User](MongoConn, colname, filter)
+	return data
+}
+
+func CompareUsername(MongoConn *mongo.Database, Colname, username string) bool {
+	filter := bson.M{"username": username}
+	err := atdb.GetOneDoc[User](MongoConn, Colname, filter)
+	users := err.Username
+	if users == "" {
+		return false
+	}
+	return true
+}
+
