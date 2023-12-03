@@ -56,7 +56,7 @@ func GFCPostHandlerUser(MONGOCONNSTRINGENV, dbname, collectionname string, r *ht
 }
 
 // Login User NPM
-func GCFPostHandler(PASETOPRIVATEKEYENV, MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
+func LoginUserNPM(PASETOPRIVATEKEYENV, MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
 	var Response Credential
 	Response.Status = false
 	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
@@ -85,7 +85,7 @@ func GCFPostHandler(PASETOPRIVATEKEYENV, MONGOCONNSTRINGENV, dbname, collectionn
 }
 
 // Login User Email
-func GCFPostHandlerEmail(PASETOPRIVATEKEYENV, MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
+func LoginUserEmail(PASETOPRIVATEKEYENV, MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
 	var Response Credential
 	Response.Status = false
 	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
@@ -127,36 +127,38 @@ func GCFReturnStruct(DataStuct any) string {
 }
 
 // Login Admin
-func LoginAdmin(Privatekey, MongoEnv, dbname, Colname string, r *http.Request) string {
-	var resp Credential
-	mconn := SetConnection(MongoEnv, dbname)
+func LoginAdmin(PASETOPRIVATEKEYENV, MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
+	var Response Credential
+	Response.Status = false
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
 	var dataadmin Admin
 	err := json.NewDecoder(r.Body).Decode(&dataadmin)
 	if err != nil {
-		resp.Message = "error parsing application/json: " + err.Error()
+		Response.Message = "error parsing application/json: " + err.Error()
 	} else {
-		if IsPasswordValidAdmin(mconn, Colname, dataadmin) {
-			tokenstring, err := watoken.Encode(dataadmin.Username, os.Getenv(Privatekey))
+		// Assuming either email or npm is provided in the request
+		if IsPasswordValidAdmin(mconn, collectionname, dataadmin) {
+			Response.Status = true
+			// Using NPM as identifier, you can modify this as needed
+			tokenstring, err := watoken.Encode(dataadmin.Username, os.Getenv(PASETOPRIVATEKEYENV))
 			if err != nil {
-				resp.Message = "Gagal Encode Token : " + err.Error()
+				Response.Message = "Gagal Encode Token : " + err.Error()
 			} else {
-				resp.Status = true
-				resp.Message = "Selamat Datang"
-				resp.Token = tokenstring
+				Response.Message = "Selamat Datang Admin"
+				Response.Token = tokenstring
 			}
 		} else {
-			resp.Message = "Password Salah"
+			Response.Message = "Username atau Password Salah"
 		}
 	}
-	return GCFReturnStruct(resp)
+
+	return GCFReturnStruct(Response)
 }
 
 func ReturnStringStruct(Data any) string {
 	jsonee, _ := json.Marshal(Data)
 	return string(jsonee)
 }
-
-//
 
 // Register User
 func Register(Mongoenv, dbname string, r *http.Request) string {

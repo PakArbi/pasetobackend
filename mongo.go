@@ -155,10 +155,10 @@ func IsPasswordValidEmail(mongoconn *mongo.Database, collection string, userdata
 }
 
 // Cek Password Admin
-func IsPasswordValidAdmin(mongoconn *mongo.Database, collection string, userdata Admin) bool {
-	filter := bson.M{"username": userdata.Username}
+func IsPasswordValidAdmin(mongoconn *mongo.Database, collection string, admindata Admin) bool {
+	filter := bson.M{"username": admindata.Username}
 	res := atdb.GetOneDoc[Admin](mongoconn, collection, filter)
-	return CheckPasswordHash(userdata.Password, res.Password)
+	return CheckPasswordHash(admindata.Password, res.Password)
 }
 
 // FUNCTION CRUD
