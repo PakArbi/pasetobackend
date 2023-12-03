@@ -126,8 +126,8 @@ func TestAdminFix(t *testing.T) {
 func TestEncodeWithRole(t *testing.T) {
 	privateKey, publicKey := watoken.GenerateKey()
 	role := "admin"
-	username := "adminpakarbi"
-	encoder, err := EncodeWithRole(role, username, privateKey)
+	email := "PakArbi2023@std.ulbi.ac.id"
+	encoder, err := EncodeWithRole(role, email, privateKey)
 
 	fmt.Println(" error :", err)
 	fmt.Println("Private :", privateKey)
