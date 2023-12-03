@@ -131,16 +131,24 @@ func LoginAdmin(PASETOPRIVATEKEYENV, MONGOCONNSTRINGENV, dbname, collectionname 
 	var Response Credential
 	Response.Status = false
 	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
-	var dataadmin Admin
-	err := json.NewDecoder(r.Body).Decode(&dataadmin)
+	var datauser User
+	err := json.NewDecoder(r.Body).Decode(&datauser)
 	if err != nil {
 		Response.Message = "error parsing application/json: " + err.Error()
 	} else {
-		// Assuming either email or npm is provided in the request
-		if IsPasswordValidAdmin(mconn, collectionname, dataadmin) {
+		// Validasi email harus menggunakan npm@std.ulbi.ac.id sesuai dengan email kampus didaftarkan sebelum melakukan login
+		validator := NewEmailValidator()
+		if !validator.IsValid(datauser.Email) {
+			Response.Message = "Email is not valid"
+			response := GCFReturnStruct(Response)
+			return response
+		}
+
+		// reguest npm or email
+		if IsPasswordValidEmail(mconn, collectionname, datauser) {
 			Response.Status = true
-			// Using NPM as identifier, you can modify this as needed
-			tokenstring, err := watoken.Encode(dataadmin.Username, os.Getenv(PASETOPRIVATEKEYENV))
+			// Menggunakan npm identifikasi, Anda bisa modifikasi sesuai keinginan
+			tokenstring, err := watoken.Encode(datauser.Email, os.Getenv(PASETOPRIVATEKEYENV))
 			if err != nil {
 				Response.Message = "Gagal Encode Token : " + err.Error()
 			} else {
@@ -148,7 +156,7 @@ func LoginAdmin(PASETOPRIVATEKEYENV, MONGOCONNSTRINGENV, dbname, collectionname 
 				Response.Token = tokenstring
 			}
 		} else {
-			Response.Message = "Username atau Password Salah"
+			Response.Message = "Email atau Password Salah"
 		}
 	}
 
