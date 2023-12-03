@@ -259,31 +259,6 @@ func RegisterAdmin(Mongoenv, dbname string, r *http.Request) string {
 	return response
 }
 
-// Get User
-func GetDataUserFromGCF(PublicKey, MongoEnv, dbname, colname string, r *http.Request) string {
-	req := new(Response)
-	conn := GetConnectionMongo(MongoEnv, dbname)
-	cihuy := new(ResponseGet)
-	err := json.NewDecoder(r.Body).Decode(&cihuy)
-	if err != nil {
-		req.Status = false
-		req.Message = "error parsing application/json: " + err.Error()
-	} else {
-		checktoken := watoken.DecodeGetId(os.Getenv(PublicKey), cihuy.Token)
-		compared := CompareUsername(conn, colname, checktoken)
-		if compared != true {
-			req.Status = false
-			req.Message = "Data Username tidak ada di database"
-		} else {
-			datauser := GetAllUser(conn, colname)
-			req.Status = true
-			req.Message = "data User berhasil diambil"
-			req.Data = datauser
-		}
-	}
-	return ReturnStringStruct(req)
-}
-
 // // Register Admin
 // func RegisterAdmin(Mongoenv, dbname string, r *http.Request) string {
 // 	resp := new(Credential)
@@ -306,61 +281,8 @@ func GetDataUserFromGCF(PublicKey, MongoEnv, dbname, colname string, r *http.Req
 // 	return response
 // }
 
-func GetDataUserForAdmin(PublicKey, MongoEnv, dbname, colname string, r *http.Request) string {
-	req := new(Response)
-	conn := GetConnectionMongo(MongoEnv, dbname)
-	tokenlogin := r.Header.Get("Login")
-	if tokenlogin == "" {
-		req.Status = false
-		req.Message = "Header Login Not Found"
-	} else {
-		checktoken, err := DecodeGetUser(os.Getenv(PublicKey), tokenlogin)
-		if err != nil {
-			req.Status = false
-			req.Message = "tidak ada data username : " + tokenlogin
-		}
-		compared := CompareUsername(conn, colname, checktoken)
-		if compared != true {
-			req.Status = false
-			req.Message = "Data User tidak ada"
-		} else {
-			datauser := GetAllUser(conn, colname)
-			req.Status = true
-			req.Message = "data User berhasil diambil"
-			req.Data = datauser
-		}
-	}
-	return ReturnStringStruct(req)
-}
-
-func GetDataUser(PublicKey, MongoEnv, dbname, colname string, r *http.Request) string {
-	req := new(Response)
-	conn := GetConnectionMongo(MongoEnv, dbname)
-	tokenlogin := r.Header.Get("Login")
-	if tokenlogin == "" {
-		req.Status = false
-		req.Message = "Header Login Not Found"
-	} else {
-		checktoken, err := DecodeGetUser(os.Getenv(PublicKey), tokenlogin)
-		if err != nil {
-			req.Status = false
-			req.Message = "tidak ada data username : " + tokenlogin
-		}
-		compared := CompareUsername(conn, colname, checktoken)
-		if compared != true {
-			req.Status = false
-			req.Message = "Data User tidak ada"
-		} else {
-			datauser := GetAllUser(conn, colname)
-			req.Status = true
-			req.Message = "data User berhasil diambil"
-			req.Data = datauser
-		}
-	}
-	return ReturnStringStruct(req)
-}
-
-func GetDataUserr(PublicKey, MongoEnv, dbname, colname string, r *http.Request) string {
+// Get All User
+func GetAllDataUser(PublicKey, MongoEnv, dbname, colname string, r *http.Request) string {
 	req := new(Response)
 	conn := GetConnectionMongo(MongoEnv, dbname)
 	tokenlogin := r.Header.Get("Login")
@@ -375,7 +297,7 @@ func GetDataUserr(PublicKey, MongoEnv, dbname, colname string, r *http.Request) 
 			req.Message = "Tidak ada data username: " + tokenlogin
 		} else {
 			// Langsung ambil data user berdasarkan username
-			datauser := GetAllUserr(conn, colname, username);
+			datauser := GetAllUser(conn, colname, username)
 			if datauser == nil {
 				req.Status = false
 				req.Message = "Data User tidak ada"
@@ -388,3 +310,39 @@ func GetDataUserr(PublicKey, MongoEnv, dbname, colname string, r *http.Request) 
 	}
 	return ReturnStringStruct(req)
 }
+
+// Get One User
+func GetOneDataUser(PublicKey, MongoEnv, dbname, colname string, r *http.Request) string {
+    req := new(Response)
+    conn := GetConnectionMongo(MongoEnv, dbname)
+    tokenlogin := r.Header.Get("Login")
+    if tokenlogin == "" {
+        req.Status = false
+        req.Message = "Header Login Not Found"
+    } else {
+        // Dekode token untuk mendapatkan username
+        username, err := DecodeGetUser(os.Getenv(PublicKey), tokenlogin)
+        if err != nil {
+            req.Status = false
+            req.Message = "Tidak ada data username: " + tokenlogin
+        } else {
+            // Langsung ambil data user berdasarkan username
+            datauser, err := GetOneUserr(conn, colname, username)
+            if err != nil {
+                req.Status = false
+                req.Message = "Error mengambil data user: " + err.Error()
+            } else if datauser == (User{}) {
+                req.Status = false
+                req.Message = "Data User tidak ada"
+            } else {
+                req.Status = true
+                req.Message = "Data User berhasil diambil"
+                req.Data = []User{datauser} // Menggunakan slice dari pointer ke User
+            }
+        }
+    }
+    return ReturnStringStruct(req)
+}
+
+
+

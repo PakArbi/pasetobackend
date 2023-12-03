@@ -254,14 +254,26 @@ func UpdateDataUser(MongoConn *mongo.Database, colname, npm, Username, Email, Ro
     return nil
 }
 
-func GetAllUser(MongoConn *mongo.Database, colname string) []User {
+func GetAllUser(MongoConn *mongo.Database, colname string, username string) []User {
 	data := atdb.GetAllDoc[[]User](MongoConn, colname)
 	return data
 }
 
-func GetAllUserr(MongoConn *mongo.Database, colname string, username string) []User {
-	data := atdb.GetAllDoc[[]User](MongoConn, colname)
-	return data
+func GetOneUserr(MongoConn *mongo.Database, colname string, username string) (User, error) {
+    var user User
+
+    // Membuat filter untuk mencari dokumen dengan username tertentu
+    filter := bson.M{"username": username}
+
+    // Menggunakan fungsi FindOne untuk mendapatkan satu dokumen berdasarkan filter
+    result := MongoConn.Collection(colname).FindOne(context.TODO(), filter)
+
+    // Decode hasil ke variabel user
+    if err := result.Decode(&user); err != nil {
+        return User{}, err
+    }
+
+    return user, nil
 }
 
 func GetOneUser(MongoConn *mongo.Database, colname string, userdata User) User {
@@ -269,6 +281,7 @@ func GetOneUser(MongoConn *mongo.Database, colname string, userdata User) User {
 	data := atdb.GetOneDoc[User](MongoConn, colname, filter)
 	return data
 }
+
 
 func CompareUsername(MongoConn *mongo.Database, Colname, username string) bool {
 	filter := bson.M{"username": username}
