@@ -266,12 +266,11 @@ func GetOneUser(MongoConn *mongo.Database, colname string, userdata User) User {
 	return data
 }
 
-func GetOneUserNPM(mongoconn *mongo.Database, colname, NPM string) (usr User) {
-	filter := bson.M{"npm": NPM}
+func GetOneUserNPM(mongoconn *mongo.Database, colname, Npm string) (usr User) {
+	filter := bson.M{"npm": Npm}
 	usr = atdb.GetOneDoc[User](mongoconn, colname, filter)
 	return
 }
-
 
 func CompareUsername(MongoConn *mongo.Database, Colname, username string) bool {
 	filter := bson.M{"username": username}

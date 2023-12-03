@@ -276,31 +276,41 @@ func GetAllDataUser(PublicKey, MongoEnv, dbname, colname string, r *http.Request
 	return ReturnStringStruct(req)
 }
 
+
 // Get One User
 func GetOneDataUserNPM(PublicKey, MongoEnv, dbname, colname string, r *http.Request) string {
-	req := new(ResponseNPM)
-	resp := new(RequestNPM)
+	req := new(Response)
 	conn := GetConnectionMongo(MongoEnv, dbname)
 	tokenlogin := r.Header.Get("Login")
 	if tokenlogin == "" {
 		req.Status = false
 		req.Message = "Header Login Not Found"
 	} else {
-		err := json.NewDecoder(r.Body).Decode(&resp)
+		npm, err := DecodeGetNPM(os.Getenv(PublicKey), tokenlogin)
 		if err != nil {
-			req.Message = "error parsing application/json: " + err.Error()
+			req.Status = false
+			req.Message = "Error parsing application/json: " + err.Error()
 		} else {
-			datauser := GetOneUserNPM(conn, colname, resp.NPM)
-			req.Status = true
-			req.Message = "data User berhasil diambil"
-			req.Data = datauser
+			datauser := GetOneUserNPM(conn, colname, npm)
+			if datauser == (User{}) {
+				req.Status = false
+				req.Message = "Data User tidak ditemukan"
+			} else {
+				req.Status = true
+				req.Message = "Data User berhasil diambil"
+				req.Data = []User{datauser} // Ubah ke slice dari User
+			}
 		}
 	}
 	return ReturnStringStruct(req)
 }
 
+
+
+
+
 // Delete User
-func DeleteEmployee(Mongoenv, publickey, dbname, colname string, r *http.Request) string {
+func DeleteUser(Mongoenv, publickey, dbname, colname string, r *http.Request) string {
 	resp := new(Cred)
 	req := new(RequestNPM)
 	conn := GetConnectionMongo(Mongoenv, dbname)
@@ -313,18 +323,18 @@ func DeleteEmployee(Mongoenv, publickey, dbname, colname string, r *http.Request
 		if err != nil {
 			resp.Message = "error parsing application/json: " + err.Error()
 		} else {
-				_, err := DeleteDataUser(conn, colname, req.NPM)
-				if err != nil {
-					resp.Status = fiber.StatusBadRequest
-					resp.Message = "gagal hapus data"
-				}
-				resp.Status = fiber.StatusOK
-				resp.Message = "data berhasil dihapus"
+			_, err := DeleteDataUser(conn, colname, req.NPM)
+			if err != nil {
+				resp.Status = fiber.StatusBadRequest
+				resp.Message = "gagal hapus data"
 			}
+			resp.Status = fiber.StatusOK
+			resp.Message = "data berhasil dihapus"
 		}
-		return ReturnStringStruct(resp)
 	}
-	
+	return ReturnStringStruct(resp)
+}
+
 // Delete User
 func GCFDeleteDataUser(Mongostring, dbname, colname string, r *http.Request) string {
 	req := new(Credents)

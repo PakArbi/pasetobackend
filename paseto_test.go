@@ -132,9 +132,11 @@ func TestEncodeWithRole(t *testing.T) {
 func TestDecoder2(t *testing.T) {
 	pay, err := Decoder(publickeyb, encode)
 	user, _ := DecodeGetUser(publickeyb, encode)
+	npm, _ := DecodeGetNPM(publickeyb, encode)
 	role, _ := DecodeGetRole(publickeyb, encode)
 	use, ro := DecodeGetRoleandUser(publickeyb, encode)
 	fmt.Println("user :", user)
+	fmt.Println("npm :", npm)
 	fmt.Println("role :", role)
 	fmt.Println("user and role :", use, ro)
 	fmt.Println("err : ", err)
