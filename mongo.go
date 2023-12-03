@@ -231,7 +231,7 @@ func DeleteDataUser(MongoConn *mongo.Database, colname string, npm string) (*mon
     }
     return del, nil
 }
-
+//func untuk edit
 func UpdateDataUser(MongoConn *mongo.Database, colname, npm, Username, Email, Role string) error {
     // Filter berdasarkan nama
     filter := bson.M{"npm": npm}
