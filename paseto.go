@@ -2,11 +2,11 @@ package pasetobackend
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 	"regexp"
 	"strconv"
-	"fmt"
 
 	"github.com/whatsauth/watoken"
 	// "go.mongodb.org/mongo-driver/bson"
@@ -191,24 +191,24 @@ func Register(Mongoenv, dbname string, r *http.Request) string {
 
 // gcf crud
 func GCFDeleteDataUser(Mongostring, dbname, colname string, r *http.Request) string {
-    req := new(Credents)
-    resp := new(User)
-    conn := GetConnectionMongo(Mongostring, dbname)
-    err := json.NewDecoder(r.Body).Decode(&resp)
-    if err != nil {
-        req.Status = strconv.Itoa(http.StatusNotFound)
-        req.Message = "error parsing application/json: " + err.Error()
-    } else {
-        req.Status = strconv.Itoa(http.StatusOK)
-        delResult, delErr := DeleteDataUser(conn, colname, resp.NPM)
-        if delErr != nil {
-            req.Status = strconv.Itoa(http.StatusInternalServerError)
-            req.Message = "error deleting data: " + delErr.Error()
-        } else {
-            req.Message = fmt.Sprintf("Berhasil menghapus data. Jumlah data terhapus: %v", delResult.DeletedCount)
-        }
-    }
-    return ReturnStringStruct(req)
+	req := new(Credents)
+	resp := new(User)
+	conn := GetConnectionMongo(Mongostring, dbname)
+	err := json.NewDecoder(r.Body).Decode(&resp)
+	if err != nil {
+		req.Status = strconv.Itoa(http.StatusNotFound)
+		req.Message = "error parsing application/json: " + err.Error()
+	} else {
+		req.Status = strconv.Itoa(http.StatusOK)
+		delResult, delErr := DeleteDataUser(conn, colname, resp.NPM)
+		if delErr != nil {
+			req.Status = strconv.Itoa(http.StatusInternalServerError)
+			req.Message = "error deleting data: " + delErr.Error()
+		} else {
+			req.Message = fmt.Sprintf("Berhasil menghapus data. Jumlah data terhapus: %v", delResult.DeletedCount)
+		}
+	}
+	return ReturnStringStruct(req)
 }
 
 func GCFUpdateDataUser(Mongostring, dbname, colname string, r *http.Request) string {
@@ -226,8 +226,6 @@ func GCFUpdateDataUser(Mongostring, dbname, colname string, r *http.Request) str
 	}
 	return ReturnStringStruct(req)
 }
-
-
 
 // Register Admin
 func RegisterAdmin(Mongoenv, dbname string, r *http.Request) string {
@@ -330,6 +328,62 @@ func GetDataUserForAdmin(PublicKey, MongoEnv, dbname, colname string, r *http.Re
 			req.Status = true
 			req.Message = "data User berhasil diambil"
 			req.Data = datauser
+		}
+	}
+	return ReturnStringStruct(req)
+}
+
+func GetDataUser(PublicKey, MongoEnv, dbname, colname string, r *http.Request) string {
+	req := new(Response)
+	conn := GetConnectionMongo(MongoEnv, dbname)
+	tokenlogin := r.Header.Get("Login")
+	if tokenlogin == "" {
+		req.Status = false
+		req.Message = "Header Login Not Found"
+	} else {
+		checktoken, err := DecodeGetUser(os.Getenv(PublicKey), tokenlogin)
+		if err != nil {
+			req.Status = false
+			req.Message = "tidak ada data username : " + tokenlogin
+		}
+		compared := CompareUsername(conn, colname, checktoken)
+		if compared != true {
+			req.Status = false
+			req.Message = "Data User tidak ada"
+		} else {
+			datauser := GetAllUser(conn, colname)
+			req.Status = true
+			req.Message = "data User berhasil diambil"
+			req.Data = datauser
+		}
+	}
+	return ReturnStringStruct(req)
+}
+
+func GetDataUserr(PublicKey, MongoEnv, dbname, colname string, r *http.Request) string {
+	req := new(Response)
+	conn := GetConnectionMongo(MongoEnv, dbname)
+	tokenlogin := r.Header.Get("Login")
+	if tokenlogin == "" {
+		req.Status = false
+		req.Message = "Header Login Not Found"
+	} else {
+		// Dekode token untuk mendapatkan username
+		username, err := DecodeGetUser(os.Getenv(PublicKey), tokenlogin)
+		if err != nil {
+			req.Status = false
+			req.Message = "Tidak ada data username: " + tokenlogin
+		} else {
+			// Langsung ambil data user berdasarkan username
+			datauser := GetAllUserr(conn, colname, username);
+			if datauser == nil {
+				req.Status = false
+				req.Message = "Data User tidak ada"
+			} else {
+				req.Status = true
+				req.Message = "Data User berhasil diambil"
+				req.Data = datauser
+			}
 		}
 	}
 	return ReturnStringStruct(req)

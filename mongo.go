@@ -259,6 +259,11 @@ func GetAllUser(MongoConn *mongo.Database, colname string) []User {
 	return data
 }
 
+func GetAllUserr(MongoConn *mongo.Database, colname string, username string) []User {
+	data := atdb.GetAllDoc[[]User](MongoConn, colname)
+	return data
+}
+
 func GetOneUser(MongoConn *mongo.Database, colname string, userdata User) User {
 	filter := bson.M{"username": userdata.Username}
 	data := atdb.GetOneDoc[User](MongoConn, colname, filter)
