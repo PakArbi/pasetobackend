@@ -155,10 +155,21 @@ func IsPasswordValidEmail(mongoconn *mongo.Database, collection string, userdata
 }
 
 // Cek Password Admin
-func IsPasswordValidAdmin(mongoconn *mongo.Database, collection string, admindata Admin) bool {
-	filter := bson.M{"username": admindata.Username}
-	res := atdb.GetOneDoc[Admin](mongoconn, collection, filter)
-	return CheckPasswordHash(admindata.Password, res.Password)
+func IsPasswordValidEmailAdmin(mongoconn *mongo.Database, collection string, admindata Admin) bool {
+	filter := bson.M{
+		"$or": []bson.M{
+			{"email": admindata.Email},
+		},
+	}
+
+	var res Admin
+	err := mongoconn.Collection(collection).FindOne(context.TODO(), filter).Decode(&res)
+
+	if err == nil {
+		// Mengasumsikan res.PasswordHash adalah password terenkripsi yang tersimpan di database
+		return CheckPasswordHash(admindata.PasswordHash, res.PasswordHash)
+	}
+	return false
 }
 
 // FUNCTION CRUD
