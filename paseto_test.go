@@ -36,10 +36,11 @@ func TestGeneratePrivateKeyPaseto(t *testing.T) {
 func TestHashFunction(t *testing.T) {
 	mconn := SetConnection("MONGOSTRING", "PakArbi")
 	var userdata User
+	userdata.UsernameId = "D4TI1214000"
 	userdata.Username = "pakarbi"
 	userdata.PasswordHash = "pakarbipass"
 
-	filter := bson.M{"username": userdata.Username}
+	filter := bson.M{"usernameid": userdata.UsernameId}
 	res := atdb.GetOneDoc[User](mconn, "user", filter)
 	fmt.Println("Mongo User Result: ", res)
 	hash, _ := HashPassword(userdata.PasswordHash)
@@ -52,6 +53,7 @@ func TestHashFunction(t *testing.T) {
 func TestIsPasswordValid(t *testing.T) {
 	mconn := SetConnection("MONGOSTRING", "PakArbi")
 	var userdata User
+	userdata.UsernameId = "D4TI1214000"
 	userdata.Username = "pakarbi"
 	userdata.PasswordHash = "pakarbipass"
 
@@ -62,6 +64,7 @@ func TestIsPasswordValid(t *testing.T) {
 func TestUserFix(t *testing.T) {
 	mconn := SetConnection("MONGOSTRING", "PakArbi")
 	var userdata User
+	userdata.UsernameId = "D4TI1214000"
 	userdata.Username = "pakarbi"
 	userdata.NPM = "1214000"
 	userdata.Password = "pakarbipass"
@@ -86,10 +89,12 @@ func TestTokenEncoder(t *testing.T) {
 	conn := GetConnectionMongo("MONGOSTRING", "PakArbi")
 	privateKey, publicKey := watoken.GenerateKey()
 	userdata := new(User)
+	userdata.UsernameId = "D4TI1214000"
 	userdata.Username = "pakarbi"
 	userdata.Password = "pakarbipass"
 
 	data := GetOneUser(conn, "user", User{
+		UsernameId: userdata.UsernameId,
 		Username: userdata.Username,
 		Password: userdata.Password,
 	})
@@ -98,7 +103,7 @@ func TestTokenEncoder(t *testing.T) {
 	fmt.Printf("%+v", data)
 	fmt.Println(" ")
 
-	encode := TokenEncoder(data.Username, privateKey)
+	encode := TokenEncoder(data.UsernameId, privateKey)
 	fmt.Printf("%+v", encode)
 }
 
