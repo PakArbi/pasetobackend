@@ -243,6 +243,9 @@ func RegisterAdmin(Mongoenv, dbname string, r *http.Request) string {
 // 	return response
 // }
 
+
+/* --CRUD USER-- */
+
 // Get All User
 func GetAllDataUser(PublicKey, MongoEnv, dbname, colname string, r *http.Request) string {
 	req := new(Response)
@@ -296,6 +299,7 @@ func GetOneDataUserNPM(PublicKey, MongoEnv, dbname, colname string, r *http.Requ
 	return ReturnStringStruct(req)
 }
 
+// Delete User
 func GCFDeleteDataUser(Mongostring, dbname, colname string, r *http.Request) string {
 	req := new(Credents)
 	resp := new(User)
@@ -317,6 +321,7 @@ func GCFDeleteDataUser(Mongostring, dbname, colname string, r *http.Request) str
 	return ReturnStringStruct(req)
 }
 
+// Update User
 func GCFUpdateDataUser(Mongostring, dbname, colname string, r *http.Request) string {
 	req := new(Credents)
 	resp := new(User)
