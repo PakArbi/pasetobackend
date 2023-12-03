@@ -37,6 +37,11 @@ type Credents struct {
 	Message string `json:"message" bson:"message"`
 }
 
+type Cred struct {
+	Status  int    `json:"status"`
+	Message string `json:"message"`
+}
+
 type Response struct {
 	Status  bool   `json:"status" bson:"status"`
 	Message string `json:"message" bson:"message"`

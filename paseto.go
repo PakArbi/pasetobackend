@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strconv"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/whatsauth/watoken"
 	// "go.mongodb.org/mongo-driver/bson"
 )
@@ -243,7 +244,6 @@ func RegisterAdmin(Mongoenv, dbname string, r *http.Request) string {
 // 	return response
 // }
 
-
 /* --CRUD USER-- */
 
 // Get All User
@@ -299,6 +299,32 @@ func GetOneDataUserNPM(PublicKey, MongoEnv, dbname, colname string, r *http.Requ
 	return ReturnStringStruct(req)
 }
 
+// Delete User
+func DeleteEmployee(Mongoenv, publickey, dbname, colname string, r *http.Request) string {
+	resp := new(Cred)
+	req := new(RequestNPM)
+	conn := GetConnectionMongo(Mongoenv, dbname)
+	tokenlogin := r.Header.Get("Login")
+	if tokenlogin == "" {
+		resp.Status = fiber.StatusBadRequest
+		resp.Message = "Token login tidak ada"
+	} else {
+		err := json.NewDecoder(r.Body).Decode(&req)
+		if err != nil {
+			resp.Message = "error parsing application/json: " + err.Error()
+		} else {
+				_, err := DeleteDataUser(conn, colname, req.NPM)
+				if err != nil {
+					resp.Status = fiber.StatusBadRequest
+					resp.Message = "gagal hapus data"
+				}
+				resp.Status = fiber.StatusOK
+				resp.Message = "data berhasil dihapus"
+			}
+		}
+		return ReturnStringStruct(resp)
+	}
+	
 // Delete User
 func GCFDeleteDataUser(Mongostring, dbname, colname string, r *http.Request) string {
 	req := new(Credents)
