@@ -13,6 +13,8 @@ var privatekey = "privatekey"
 var publickeyb = "publickey"
 var encode = "encode"
 
+/* -- TEST USER START -- */
+
 // Test Password Hash
 func TestGeneratePasswordHash(t *testing.T) {
 	passwordhash := "pakarbipass"
@@ -47,7 +49,6 @@ func TestHashFunction(t *testing.T) {
 	fmt.Println("Hash Password : ", hash)
 	match := CheckPasswordHash(userdata.PasswordHash, res.PasswordHash)
 	fmt.Println("Match:   ", match)
-
 }
 
 func TestIsPasswordValid(t *testing.T) {
@@ -74,17 +75,6 @@ func TestUserFix(t *testing.T) {
 	CreateUser(mconn, "user", userdata)
 }
 
-func TestAdminFix(t *testing.T) {
-	mconn := SetConnection("MONGOSTRING", "PakArbi")
-	var admindata Admin
-	admindata.Username = "adminpakarbi"
-	admindata.Password = "adminpakarbipass"
-	admindata.PasswordHash = "adminpakarbipass"
-	admindata.Email = "PakArbi2023@gmail.com"
-	admindata.Role = "admin"
-	CreateAdmin(mconn, "admin", admindata)
-}
-
 func TestTokenEncoder(t *testing.T) {
 	conn := GetConnectionMongo("MONGOSTRING", "PakArbi")
 	privateKey, publicKey := watoken.GenerateKey()
@@ -95,8 +85,8 @@ func TestTokenEncoder(t *testing.T) {
 
 	data := GetOneUser(conn, "user", User{
 		UsernameId: userdata.UsernameId,
-		Username: userdata.Username,
-		Password: userdata.Password,
+		Username:   userdata.Username,
+		Password:   userdata.Password,
 	})
 	fmt.Println("Private Key : ", privateKey)
 	fmt.Println("Public Key : ", publicKey)
@@ -107,18 +97,30 @@ func TestTokenEncoder(t *testing.T) {
 	fmt.Printf("%+v", encode)
 }
 
-func TestDecodeToken(t *testing.T) {
-	deco := watoken.DecodeGetId("public",
-		"token")
-	fmt.Println(deco)
-}
-
 func TestCompareUsername(t *testing.T) {
 	conn := GetConnectionMongo("MONGOSTRING", "PakArbi")
 	deco := watoken.DecodeGetId("public",
 		"token")
 	compare := CompareUsername(conn, "user", deco)
 	fmt.Println(compare)
+}
+
+/* -- TEST USER END -- */
+
+/* ======================================================== */
+
+/* -- TEST ADMIN START -- */
+
+// Test Admin
+func TestAdminFix(t *testing.T) {
+	mconn := SetConnection("MONGOSTRING", "PakArbi")
+	var admindata Admin
+	admindata.Username = "adminpakarbi"
+	admindata.Password = "adminpakarbipass"
+	admindata.PasswordHash = "adminpakarbipass"
+	admindata.Email = "PakArbi2023@std.ulbi.ac.id"
+	admindata.Role = "admin"
+	CreateAdmin(mconn, "admin", admindata)
 }
 
 func TestEncodeWithRole(t *testing.T) {
@@ -134,6 +136,22 @@ func TestEncodeWithRole(t *testing.T) {
 
 }
 
+func TestGeneratePrivateKeyPasetoAdmin(t *testing.T) {
+	privateKey, publicKey := watoken.GenerateKey()
+	fmt.Println(privateKey)
+	fmt.Println(publicKey)
+	hasil, err := watoken.Encode("adminpakarbipass", privateKey)
+	fmt.Println(hasil, err)
+}
+
+/* -- TEST ADMIN END -- */
+
+func TestDecodeToken(t *testing.T) {
+	deco := watoken.DecodeGetId("public",
+		"token")
+	fmt.Println(deco)
+}
+
 func TestDecoder2(t *testing.T) {
 	pay, err := Decoder(publickeyb, encode)
 	user, _ := DecodeGetUser(publickeyb, encode)
@@ -147,5 +165,3 @@ func TestDecoder2(t *testing.T) {
 	fmt.Println("err : ", err)
 	fmt.Println("payload : ", pay)
 }
-
-
