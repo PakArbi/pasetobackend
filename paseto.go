@@ -312,37 +312,24 @@ func GetAllDataUser(PublicKey, MongoEnv, dbname, colname string, r *http.Request
 }
 
 // Get One User
-func GetOneDataUser(PublicKey, MongoEnv, dbname, colname string, r *http.Request) string {
-    req := new(Response)
-    conn := GetConnectionMongo(MongoEnv, dbname)
-    tokenlogin := r.Header.Get("Login")
-    if tokenlogin == "" {
-        req.Status = false
-        req.Message = "Header Login Not Found"
-    } else {
-        // Dekode token untuk mendapatkan username
-        username, err := DecodeGetUser(os.Getenv(PublicKey), tokenlogin)
-        if err != nil {
-            req.Status = false
-            req.Message = "Tidak ada data username: " + tokenlogin
-        } else {
-            // Langsung ambil data user berdasarkan username
-            datauser, err := GetOneUserr(conn, colname, username)
-            if err != nil {
-                req.Status = false
-                req.Message = "Error mengambil data user: " + err.Error()
-            } else if datauser == (User{}) {
-                req.Status = false
-                req.Message = "Data User tidak ada"
-            } else {
-                req.Status = true
-                req.Message = "Data User berhasil diambil"
-                req.Data = []User{datauser} // Menggunakan slice dari pointer ke User
-            }
-        }
-    }
-    return ReturnStringStruct(req)
+func GetOneDataUserNPM(PublicKey, MongoEnv, dbname, colname string, r *http.Request) string {
+	req := new(ResponseNPM)
+	resp := new(RequestNPM)
+	conn := GetConnectionMongo(MongoEnv, dbname)
+	tokenlogin := r.Header.Get("Login")
+	if tokenlogin == "" {
+		req.Status = false
+		req.Message = "Header Login Not Found"
+	} else {
+		err := json.NewDecoder(r.Body).Decode(&resp)
+		if err != nil {
+			req.Message = "error parsing application/json: " + err.Error()
+		} else {
+			datauser := GetOneUserNPM(conn, colname, resp.NPM)
+			req.Status = true
+			req.Message = "data User berhasil diambil"
+			req.Data = datauser
+		}
+	}
+	return ReturnStringStruct(req)
 }
-
-
-

@@ -44,8 +44,19 @@ type Response struct {
 	// Data    interface{} `json:"data" bson:"data"`
 }
 
+type ResponseNPM struct {
+	Status  bool   `json:"status" bson:"status"`
+	Message string `json:"message" bson:"message"`
+	Data    User `json:"data" bson:"data"`
+	// Data    interface{} `json:"data" bson:"data"`
+}
+
 type ResponseGet struct {
 	Token string `json:"token,omitempty" bson:"token,omitempty"`
+}
+
+type RequestNPM struct {
+	NPM          string `json:"npm" bson:"npm"`
 }
 
 // EmailValidator adalah tipe khusus untuk validasi email npm@std.ulbi.ac.id

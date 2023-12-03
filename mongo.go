@@ -66,7 +66,7 @@ func CreateUser(mongoconn *mongo.Database, collection string, userdata User) int
 	return atdb.InsertOneDoc(mongoconn, collection, userdata)
 }
 
-//Insert Data User
+// Insert Data User
 func InsertUserdata(MongoConn *mongo.Database, username, npm, password, passwordhash, email, role string) (InsertedID interface{}) {
 	req := new(User)
 	req.Username = username
@@ -78,7 +78,7 @@ func InsertUserdata(MongoConn *mongo.Database, username, npm, password, password
 	return InsertSatuDoc(MongoConn, "user", req)
 }
 
-//Insert Data Admin
+// Insert Data Admin
 func InsertAdmindata(MongoConn *mongo.Database, username, password, passwordhash, email, role string) (InsertedID interface{}) {
 	req := new(Admin)
 	req.Username = username
@@ -224,34 +224,35 @@ func InsertSatuDoc(db *mongo.Database, collection string, doc interface{}) (inse
 //crud User
 
 func DeleteDataUser(MongoConn *mongo.Database, colname string, npm string) (*mongo.DeleteResult, error) {
-    filter := bson.M{"npm": npm}
-    del, err := MongoConn.Collection(colname).DeleteOne(context.TODO(), filter)
-    if err != nil {
-        return nil, err
-    }
-    return del, nil
+	filter := bson.M{"npm": npm}
+	del, err := MongoConn.Collection(colname).DeleteOne(context.TODO(), filter)
+	if err != nil {
+		return nil, err
+	}
+	return del, nil
 }
-//func untuk edit
+
+// func untuk edit
 func UpdateDataUser(MongoConn *mongo.Database, colname, npm, Username, Email, Role string) error {
-    // Filter berdasarkan nama
-    filter := bson.M{"npm": npm}
+	// Filter berdasarkan nama
+	filter := bson.M{"npm": npm}
 
-    // Update data yang akan diubah
-    update := bson.M{
-        "$set": bson.M{
-            "username": Username,
-            "email":   Email,
-            "role":   Role,
-        },
-    }
+	// Update data yang akan diubah
+	update := bson.M{
+		"$set": bson.M{
+			"username": Username,
+			"email":    Email,
+			"role":     Role,
+		},
+	}
 
-    // Mencoba untuk mengupdate dokumen
-    _, err := MongoConn.Collection(colname).UpdateOne(context.TODO(), filter, update)
-    if err != nil {
-        return err
-    }
+	// Mencoba untuk mengupdate dokumen
+	_, err := MongoConn.Collection(colname).UpdateOne(context.TODO(), filter, update)
+	if err != nil {
+		return err
+	}
 
-    return nil
+	return nil
 }
 
 func GetAllUser(MongoConn *mongo.Database, colname string, username string) []User {
@@ -259,27 +260,16 @@ func GetAllUser(MongoConn *mongo.Database, colname string, username string) []Us
 	return data
 }
 
-func GetOneUserr(MongoConn *mongo.Database, colname string, username string) (User, error) {
-    var user User
-
-    // Membuat filter untuk mencari dokumen dengan username tertentu
-    filter := bson.M{"username": username}
-
-    // Menggunakan fungsi FindOne untuk mendapatkan satu dokumen berdasarkan filter
-    result := MongoConn.Collection(colname).FindOne(context.TODO(), filter)
-
-    // Decode hasil ke variabel user
-    if err := result.Decode(&user); err != nil {
-        return User{}, err
-    }
-
-    return user, nil
-}
-
 func GetOneUser(MongoConn *mongo.Database, colname string, userdata User) User {
 	filter := bson.M{"username": userdata.Username}
 	data := atdb.GetOneDoc[User](MongoConn, colname, filter)
 	return data
+}
+
+func GetOneUserNPM(mongoconn *mongo.Database, colname, NPM string) (usr User) {
+	filter := bson.M{"npm": NPM}
+	usr = atdb.GetOneDoc[User](mongoconn, colname, filter)
+	return
 }
 
 
@@ -292,4 +282,3 @@ func CompareUsername(MongoConn *mongo.Database, Colname, username string) bool {
 	}
 	return true
 }
-
