@@ -276,7 +276,6 @@ func GetAllDataUser(PublicKey, MongoEnv, dbname, colname string, r *http.Request
 	return ReturnStringStruct(req)
 }
 
-
 // Get One User
 func GetOneDataUserNPM(PublicKey, MongoEnv, dbname, colname string, r *http.Request) string {
 	req := new(Response)
@@ -305,14 +304,33 @@ func GetOneDataUserNPM(PublicKey, MongoEnv, dbname, colname string, r *http.Requ
 	return ReturnStringStruct(req)
 }
 
+func GetOneEmployee(PublicKey, MongoEnv, dbname, colname string, r *http.Request) string {
 
-
-
+	req := new(ResponseUser)
+	resp := new(RequestUser)
+	conn := GetConnectionMongo(MongoEnv, dbname)
+	tokenlogin := r.Header.Get("Login")
+	if tokenlogin == "" {
+		req.Status = false
+		req.Message = "Header Login Not Found"
+	} else {
+		err := json.NewDecoder(r.Body).Decode(&resp)
+		if err != nil {
+			req.Message = "error parsing application/json: " + err.Error()
+		} else {
+				datauser := GetOneUserNPM(conn, colname, req.Data.UsernameId)
+				req.Status = true
+				req.Message = "data User berhasil diambil"
+				req.Data = datauser
+			}
+		}
+		return ReturnStringStruct(req)
+	}
 
 // Delete User
 func DeleteUser(Mongoenv, publickey, dbname, colname string, r *http.Request) string {
 	resp := new(Cred)
-	req := new(RequestNPM)
+	req := new(RequestUser)
 	conn := GetConnectionMongo(Mongoenv, dbname)
 	tokenlogin := r.Header.Get("Login")
 	if tokenlogin == "" {

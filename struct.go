@@ -3,6 +3,7 @@ package pasetobackend
 import "time"
 
 type User struct {
+	UsernameId   string `json:"usernameid" bson:"usernameid"`
 	Username     string `json:"username" bson:"username"`
 	NPM          string `json:"npm" bson:"npm"`
 	Password     string `json:"password" bson:"password"`
@@ -49,10 +50,10 @@ type Response struct {
 	// Data    interface{} `json:"data" bson:"data"`
 }
 
-type ResponseNPM struct {
+type ResponseUser struct {
 	Status  bool   `json:"status" bson:"status"`
 	Message string `json:"message" bson:"message"`
-	Data    User `json:"data" bson:"data"`
+	Data    User   `json:"data" bson:"data"`
 	// Data    interface{} `json:"data" bson:"data"`
 }
 
@@ -60,8 +61,8 @@ type ResponseGet struct {
 	Token string `json:"token,omitempty" bson:"token,omitempty"`
 }
 
-type RequestNPM struct {
-	NPM          string `json:"npm" bson:"npm"`
+type RequestUser struct {
+	NPM string `json:"npm" bson:"npm"`
 }
 
 // EmailValidator adalah tipe khusus untuk validasi email npm@std.ulbi.ac.id

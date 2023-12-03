@@ -266,8 +266,8 @@ func GetOneUser(MongoConn *mongo.Database, colname string, userdata User) User {
 	return data
 }
 
-func GetOneUserNPM(mongoconn *mongo.Database, colname, Npm string) (usr User) {
-	filter := bson.M{"npm": Npm}
+func GetOneUserNPM(mongoconn *mongo.Database, colname, UserId string) (usr User) {
+	filter := bson.M{"usernameid": UserId}
 	usr = atdb.GetOneDoc[User](mongoconn, colname, filter)
 	return
 }
