@@ -67,8 +67,9 @@ func CreateUser(mongoconn *mongo.Database, collection string, userdata User) int
 }
 
 // Insert Data User
-func InsertUserdata(MongoConn *mongo.Database, username, npm, password, passwordhash, email, role string) (InsertedID interface{}) {
+func InsertUserdata(MongoConn *mongo.Database, usernameid, username, npm, password, passwordhash, email, role string) (InsertedID interface{}) {
 	req := new(User)
+	req.UsernameId = usernameid
 	req.Username = username
 	req.NPM = npm
 	req.Password = password
