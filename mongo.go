@@ -267,6 +267,15 @@ func UpdateDataUser(MongoConn *mongo.Database, colname, npm, Username, Email, Ro
 	return nil
 }
 
+func UpdateUserData(Mongoconn *mongo.Database, ctx context.Context, usr User) (UpdateId interface{}, err error) {
+	filter := bson.D{{"usernameid", usr.UsernameId}}
+	res, err := Mongoconn.Collection("user").ReplaceOne(ctx, filter, usr)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
 func GetAllUser(MongoConn *mongo.Database, colname string, username string) []User {
 	data := atdb.GetAllDoc[[]User](MongoConn, colname)
 	return data

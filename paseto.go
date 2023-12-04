@@ -315,6 +315,38 @@ func GetOneEmployee(PublicKey, MongoEnv, dbname, colname string, r *http.Request
 		return ReturnStringStruct(req)
 	}
 
+// Update User
+func UpdateUser(Mongoenv, dbname string, r *http.Request) string {
+	resp := new(Credential)
+	userdata := new(User)
+	resp.Status = false
+	conn := GetConnectionMongo(Mongoenv, dbname)
+	err := json.NewDecoder(r.Body).Decode(&userdata)
+	if err != nil {
+		resp.Message = "error parsing application/json: " + err.Error()
+	} else {
+		resp.Status = true
+
+		// Validasi email sebelum proses pendaftaran
+		validator := NewEmailValidator()
+		if !validator.IsValid(userdata.Email) {
+			resp.Message = "Email is not valid"
+			resp.Status = false
+			response := ReturnStringStruct(resp)
+			return response
+		}
+
+		hash, err := HashPassword(userdata.PasswordHash)
+		if err != nil {
+			resp.Message = "Gagal Hash Password" + err.Error()
+		}
+		InsertUserdata(conn, userdata.UsernameId, userdata.Username, userdata.NPM, userdata.Password, hash, userdata.Email, userdata.Role)
+		resp.Message = "Berhasil Input data"
+	}
+	response := ReturnStringStruct(resp)
+	return response
+}
+
 // Delete User
 func DeleteUser(Mongoenv, publickey, dbname, colname string, r *http.Request) string {
 	resp := new(Cred)
