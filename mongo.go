@@ -39,8 +39,9 @@ func SetConnection(MONGOCONNSTRINGENV, dbname string) *mongo.Database {
 	return atdb.MongoConnect(DBmongoinfo)
 }
 
+
+// < --- FUNCTION USER --->
 func CreateUser(mongoconn *mongo.Database, collection string, userdata User) interface{} {
-	// Hash the password before storing it
 	hashedPassword, err := HashPassword(userdata.PasswordHash)
 	if err != nil {
 		return err
@@ -52,7 +53,6 @@ func CreateUser(mongoconn *mongo.Database, collection string, userdata User) int
 		fmt.Println(err)
 	}
 	fmt.Println(tokenstring)
-	// decode token to get userid
 	useridstring := watoken.DecodeGetId(publicKey, tokenstring)
 	if useridstring == "" {
 		fmt.Println("expire token")
@@ -62,11 +62,9 @@ func CreateUser(mongoconn *mongo.Database, collection string, userdata User) int
 	userdata.Public = publicKey
 	userdata.PasswordHash = hashedPassword
 
-	// Insert the user data into the database
 	return atdb.InsertOneDoc(mongoconn, collection, userdata)
 }
 
-// Insert Data User
 func InsertUserdata(MongoConn *mongo.Database, usernameid, username, npm, password, passwordhash, email, role string) (InsertedID interface{}) {
 	req := new(User)
 	req.UsernameId = usernameid
@@ -79,45 +77,6 @@ func InsertUserdata(MongoConn *mongo.Database, usernameid, username, npm, passwo
 	return InsertSatuDoc(MongoConn, "user", req)
 }
 
-// Insert Data Admin
-func InsertAdmindata(MongoConn *mongo.Database, username, password, passwordhash, email, role string) (InsertedID interface{}) {
-	req := new(Admin)
-	req.Username = username
-	req.Password = password
-	req.PasswordHash = passwordhash
-	req.Email = email
-	req.Role = role
-	return InsertSatuDoc(MongoConn, "admin", req)
-}
-
-func CreateAdmin(mongoconn *mongo.Database, collection string, admindata Admin) interface{} {
-	// Hash the password before storing it
-	hashedPassword, err := HashPassword(admindata.PasswordHash)
-	if err != nil {
-		return err
-	}
-	privateKey, publicKey := watoken.GenerateKey()
-	adminid := admindata.Username
-	tokenstring, err := watoken.Encode(adminid, privateKey)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(tokenstring)
-	// decode token to get userid
-	adminidstring := watoken.DecodeGetId(publicKey, tokenstring)
-	if adminidstring == "" {
-		fmt.Println("expire token")
-	}
-	fmt.Println(adminidstring)
-	admindata.Private = privateKey
-	admindata.Public = publicKey
-	admindata.PasswordHash = hashedPassword
-
-	// Insert the user data into the database
-	return atdb.InsertOneDoc(mongoconn, collection, admindata)
-}
-
-// Cek Password NPM
 func IsPasswordValid(mongoconn *mongo.Database, collection string, userdata User) bool {
 	filter := bson.M{
 		"$or": []bson.M{
@@ -130,13 +89,11 @@ func IsPasswordValid(mongoconn *mongo.Database, collection string, userdata User
 	err := mongoconn.Collection(collection).FindOne(context.TODO(), filter).Decode(&res)
 
 	if err == nil {
-		// Mengasumsikan res.PasswordHash adalah password terenkripsi yang tersimpan di database
 		return CheckPasswordHash(userdata.PasswordHash, res.PasswordHash)
 	}
 	return false
 }
 
-// Cek Password Email
 func IsPasswordValidEmail(mongoconn *mongo.Database, collection string, userdata User) bool {
 	filter := bson.M{
 		"$or": []bson.M{
@@ -149,13 +106,47 @@ func IsPasswordValidEmail(mongoconn *mongo.Database, collection string, userdata
 	err := mongoconn.Collection(collection).FindOne(context.TODO(), filter).Decode(&res)
 
 	if err == nil {
-		// Mengasumsikan res.PasswordHash adalah password terenkripsi yang tersimpan di database
 		return CheckPasswordHash(userdata.PasswordHash, res.PasswordHash)
 	}
 	return false
 }
 
-// Cek Password Admin
+// < --- FUNCTION ADMIN --- >
+
+func CreateAdmin(mongoconn *mongo.Database, collection string, admindata Admin) interface{} {
+	hashedPassword, err := HashPassword(admindata.PasswordHash)
+	if err != nil {
+		return err
+	}
+	privateKey, publicKey := watoken.GenerateKey()
+	adminid := admindata.Username
+	tokenstring, err := watoken.Encode(adminid, privateKey)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(tokenstring)
+	adminidstring := watoken.DecodeGetId(publicKey, tokenstring)
+	if adminidstring == "" {
+		fmt.Println("expire token")
+	}
+	fmt.Println(adminidstring)
+	admindata.Private = privateKey
+	admindata.Public = publicKey
+	admindata.PasswordHash = hashedPassword
+
+	return atdb.InsertOneDoc(mongoconn, collection, admindata)
+}
+
+func InsertAdmindata(MongoConn *mongo.Database, username, password, passwordhash, email, role string) (InsertedID interface{}) {
+	req := new(Admin)
+	req.Username = username
+	req.Password = password
+	req.PasswordHash = passwordhash
+	req.Email = email
+	req.Role = role
+	return InsertSatuDoc(MongoConn, "admin", req)
+}
+
 func IsPasswordValidEmailAdmin(mongoconn *mongo.Database, collection string, admindata Admin) bool {
 	filter := bson.M{
 		"$or": []bson.M{
@@ -167,13 +158,13 @@ func IsPasswordValidEmailAdmin(mongoconn *mongo.Database, collection string, adm
 	err := mongoconn.Collection(collection).FindOne(context.TODO(), filter).Decode(&res)
 
 	if err == nil {
-		// Mengasumsikan res.PasswordHash adalah password terenkripsi yang tersimpan di database
 		return CheckPasswordHash(admindata.PasswordHash, res.PasswordHash)
 	}
 	return false
 }
 
-// FUNCTION CRUD
+// < --- FUNCTION CRUD --- >
+
 func GetAllDocs(db *mongo.Database, col string, docs interface{}) interface{} {
 	collection := db.Collection(col)
 	filter := bson.M{}
@@ -225,6 +216,7 @@ func DeleteOneDoc(_id primitive.ObjectID, db *mongo.Database, col string) error 
 	return nil
 }
 
+// dipake
 func InsertSatuDoc(db *mongo.Database, collection string, doc interface{}) (insertedID interface{}) {
 	insertResult, err := db.Collection(collection).InsertOne(context.TODO(), doc)
 	if err != nil {
@@ -232,8 +224,6 @@ func InsertSatuDoc(db *mongo.Database, collection string, doc interface{}) (inse
 	}
 	return insertResult.InsertedID
 }
-
-//crud User
 
 func DeleteDataUser(MongoConn *mongo.Database, colname string, npm string) (*mongo.DeleteResult, error) {
 	filter := bson.M{"npm": npm}
@@ -244,12 +234,8 @@ func DeleteDataUser(MongoConn *mongo.Database, colname string, npm string) (*mon
 	return del, nil
 }
 
-// func untuk edit
 func UpdateDataUser(MongoConn *mongo.Database, colname, npm, Username, Email, Role string) error {
-	// Filter berdasarkan nama
 	filter := bson.M{"npm": npm}
-
-	// Update data yang akan diubah
 	update := bson.M{
 		"$set": bson.M{
 			"username": Username,
@@ -258,7 +244,6 @@ func UpdateDataUser(MongoConn *mongo.Database, colname, npm, Username, Email, Ro
 		},
 	}
 
-	// Mencoba untuk mengupdate dokumen
 	_, err := MongoConn.Collection(colname).UpdateOne(context.TODO(), filter, update)
 	if err != nil {
 		return err
@@ -267,15 +252,12 @@ func UpdateDataUser(MongoConn *mongo.Database, colname, npm, Username, Email, Ro
 	return nil
 }
 
-func UpdateUserData(Mongoconn *mongo.Database, ctx context.Context, usr User) (UpdateId interface{}, err error) {
-	filter := bson.D{{"usernameid", usr.UsernameId}}
-	res, err := Mongoconn.Collection("user").ReplaceOne(ctx, filter, usr)
-	if err != nil {
-		return nil, err
-	}
-	return res, nil
+func UpdateUserData(mongoconn *mongo.Database, collection string, filter bson.M, usr User) interface{} {
+	updatedFilter := bson.M{"usernameid": usr.UsernameId}
+	return atdb.ReplaceOneDoc(mongoconn, collection, updatedFilter, usr)
 }
 
+// dipake
 func GetAllUser(MongoConn *mongo.Database, colname string, username string) []User {
 	data := atdb.GetAllDoc[[]User](MongoConn, colname)
 	return data

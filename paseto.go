@@ -13,7 +13,8 @@ import (
 	// "go.mongodb.org/mongo-driver/bson"
 )
 
-// NewEmailValidator membuat instance baru dari EmailValidator
+// < --- FUNCTION CEK EMAIL --- >
+
 func NewEmailValidator() *EmailValidator {
 	return &EmailValidator{
 		regexPattern: `^[a-zA-Z0-9._%+-]+@std.ulbi.ac.id$`,
@@ -26,36 +27,7 @@ func (v *EmailValidator) IsValid(email string) bool {
 	return match
 }
 
-func GFCPostHandlerUser(MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
-	var Response Credential
-	Response.Status = false
-
-	// Mendapatkan data yang diterima dari permintaan HTTP POST
-	var datauser User
-	err := json.NewDecoder(r.Body).Decode(&datauser)
-	if err != nil {
-		Response.Message = "error parsing application/json: " + err.Error()
-	} else {
-		// Menggunakan variabel MONGOCONNSTRINGENV untuk string koneksi MongoDB
-		mongoConnStringEnv := MONGOCONNSTRINGENV
-
-		mconn := SetConnection(mongoConnStringEnv, dbname)
-
-		// Lakukan pemeriksaan kata sandi menggunakan bcrypt
-		if IsPasswordValid(mconn, collectionname, datauser) {
-			Response.Status = true
-			Response.Message = "Selamat Datang"
-		} else {
-			Response.Message = "Password Salah"
-		}
-	}
-
-	// Mengirimkan respons sebagai JSON
-	responseJSON, _ := json.Marshal(Response)
-	return string(responseJSON)
-}
-
-// Login User NPM
+// < --- FUNCTION USER --->
 func LoginUserNPM(PASETOPRIVATEKEYENV, MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
 	var Response Credential
 	Response.Status = false
@@ -65,10 +37,8 @@ func LoginUserNPM(PASETOPRIVATEKEYENV, MONGOCONNSTRINGENV, dbname, collectionnam
 	if err != nil {
 		Response.Message = "error parsing application/json: " + err.Error()
 	} else {
-		// Assuming either email or npm is provided in the request
 		if IsPasswordValid(mconn, collectionname, datauser) {
 			Response.Status = true
-			// Using NPM as identifier, you can modify this as needed
 			tokenstring, err := watoken.Encode(datauser.NPM, os.Getenv(PASETOPRIVATEKEYENV))
 			if err != nil {
 				Response.Message = "Gagal Encode Token : " + err.Error()
@@ -84,7 +54,6 @@ func LoginUserNPM(PASETOPRIVATEKEYENV, MONGOCONNSTRINGENV, dbname, collectionnam
 	return GCFReturnStruct(Response)
 }
 
-// Login User Email
 func LoginUserEmail(PASETOPRIVATEKEYENV, MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
 	var Response Credential
 	Response.Status = false
@@ -102,10 +71,8 @@ func LoginUserEmail(PASETOPRIVATEKEYENV, MONGOCONNSTRINGENV, dbname, collectionn
 			return response
 		}
 
-		// reguest npm or email
 		if IsPasswordValidEmail(mconn, collectionname, datauser) {
 			Response.Status = true
-			// Menggunakan npm identifikasi, Anda bisa modifikasi sesuai keinginan
 			tokenstring, err := watoken.Encode(datauser.Email, os.Getenv(PASETOPRIVATEKEYENV))
 			if err != nil {
 				Response.Message = "Gagal Encode Token : " + err.Error()
@@ -126,49 +93,6 @@ func GCFReturnStruct(DataStuct any) string {
 	return string(jsondata)
 }
 
-// Login Admin
-func LoginAdmin(PASETOPRIVATEKEYENV, MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
-	var Response Credential
-	Response.Status = false
-	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
-	var dataadmin Admin
-	err := json.NewDecoder(r.Body).Decode(&dataadmin)
-	if err != nil {
-		Response.Message = "error parsing application/json: " + err.Error()
-	} else {
-		// Validasi email harus menggunakan npm@std.ulbi.ac.id sesuai dengan email kampus didaftarkan sebelum melakukan login
-		validator := NewEmailValidator()
-		if !validator.IsValid(dataadmin.Email) {
-			Response.Message = "Email is not valid"
-			response := GCFReturnStruct(Response)
-			return response
-		}
-
-		// reguest npm or email
-		if IsPasswordValidEmailAdmin(mconn, collectionname, dataadmin) {
-			Response.Status = true
-			// Menggunakan npm identifikasi, Anda bisa modifikasi sesuai keinginan
-			tokenstring, err := watoken.Encode(dataadmin.Email, os.Getenv(PASETOPRIVATEKEYENV))
-			if err != nil {
-				Response.Message = "Gagal Encode Token : " + err.Error()
-			} else {
-				Response.Message = "Selamat Datang Admin"
-				Response.Token = tokenstring
-			}
-		} else {
-			Response.Message = "Email atau Password Salah"
-		}
-	}
-
-	return GCFReturnStruct(Response)
-}
-
-func ReturnStringStruct(Data any) string {
-	jsonee, _ := json.Marshal(Data)
-	return string(jsonee)
-}
-
-// Register User
 func Register(Mongoenv, dbname string, r *http.Request) string {
 	resp := new(Credential)
 	userdata := new(User)
@@ -200,7 +124,47 @@ func Register(Mongoenv, dbname string, r *http.Request) string {
 	return response
 }
 
-// Register Admin
+// < --- FUNCTION ADMIN --- >
+
+func LoginAdmin(PASETOPRIVATEKEYENV, MONGOCONNSTRINGENV, dbname, collectionname string, r *http.Request) string {
+	var Response Credential
+	Response.Status = false
+	mconn := SetConnection(MONGOCONNSTRINGENV, dbname)
+	var dataadmin Admin
+	err := json.NewDecoder(r.Body).Decode(&dataadmin)
+	if err != nil {
+		Response.Message = "error parsing application/json: " + err.Error()
+	} else {
+		// Validasi email harus menggunakan npm@std.ulbi.ac.id sesuai dengan email kampus didaftarkan sebelum melakukan login
+		validator := NewEmailValidator()
+		if !validator.IsValid(dataadmin.Email) {
+			Response.Message = "Email is not valid"
+			response := GCFReturnStruct(Response)
+			return response
+		}
+
+		if IsPasswordValidEmailAdmin(mconn, collectionname, dataadmin) {
+			Response.Status = true
+			tokenstring, err := watoken.Encode(dataadmin.Email, os.Getenv(PASETOPRIVATEKEYENV))
+			if err != nil {
+				Response.Message = "Gagal Encode Token : " + err.Error()
+			} else {
+				Response.Message = "Selamat Datang Admin"
+				Response.Token = tokenstring
+			}
+		} else {
+			Response.Message = "Email atau Password Salah"
+		}
+	}
+
+	return GCFReturnStruct(Response)
+}
+
+func ReturnStringStruct(Data any) string {
+	jsonee, _ := json.Marshal(Data)
+	return string(jsonee)
+}
+
 func RegisterAdmin(Mongoenv, dbname string, r *http.Request) string {
 	resp := new(Credential)
 	admindata := new(Admin)
@@ -232,9 +196,8 @@ func RegisterAdmin(Mongoenv, dbname string, r *http.Request) string {
 	return response
 }
 
-/* --CRUD USER-- */
+// < --- FUNCTION CRUD --- >
 
-// Get All User
 func GetAllDataUser(PublicKey, MongoEnv, dbname, colname string, r *http.Request) string {
 	req := new(Response)
 	conn := GetConnectionMongo(MongoEnv, dbname)
@@ -264,7 +227,6 @@ func GetAllDataUser(PublicKey, MongoEnv, dbname, colname string, r *http.Request
 	return ReturnStringStruct(req)
 }
 
-// Get One User
 func GetOneDataUserNPM(PublicKey, MongoEnv, dbname, colname string, r *http.Request) string {
 	req := new(Response)
 	conn := GetConnectionMongo(MongoEnv, dbname)
@@ -292,30 +254,6 @@ func GetOneDataUserNPM(PublicKey, MongoEnv, dbname, colname string, r *http.Requ
 	return ReturnStringStruct(req)
 }
 
-func GetOneEmployee(PublicKey, MongoEnv, dbname, colname string, r *http.Request) string {
-
-	req := new(ResponseUser)
-	resp := new(RequestUser)
-	conn := GetConnectionMongo(MongoEnv, dbname)
-	tokenlogin := r.Header.Get("Login")
-	if tokenlogin == "" {
-		req.Status = false
-		req.Message = "Header Login Not Found"
-	} else {
-		err := json.NewDecoder(r.Body).Decode(&resp)
-		if err != nil {
-			req.Message = "error parsing application/json: " + err.Error()
-		} else {
-				datauser := GetOneUserNPM(conn, colname, req.Data.UsernameId)
-				req.Status = true
-				req.Message = "data User berhasil diambil"
-				req.Data = datauser
-			}
-		}
-		return ReturnStringStruct(req)
-	}
-
-// Update User
 func UpdateUser(Mongoenv, dbname string, r *http.Request) string {
 	resp := new(Credential)
 	userdata := new(User)
@@ -347,7 +285,6 @@ func UpdateUser(Mongoenv, dbname string, r *http.Request) string {
 	return response
 }
 
-// Delete User
 func DeleteUser(Mongoenv, publickey, dbname, colname string, r *http.Request) string {
 	resp := new(Cred)
 	req := new(RequestUser)
@@ -373,7 +310,6 @@ func DeleteUser(Mongoenv, publickey, dbname, colname string, r *http.Request) st
 	return ReturnStringStruct(resp)
 }
 
-// Delete User
 func GCFDeleteDataUser(Mongostring, dbname, colname string, r *http.Request) string {
 	req := new(Credents)
 	resp := new(User)
@@ -395,7 +331,6 @@ func GCFDeleteDataUser(Mongostring, dbname, colname string, r *http.Request) str
 	return ReturnStringStruct(req)
 }
 
-// Update User
 func GCFUpdateDataUser(Mongostring, dbname, colname string, r *http.Request) string {
 	req := new(Credents)
 	resp := new(User)
